@@ -38,11 +38,21 @@ def upload_blob():
    b = Blob(item=fr, filename=f.filename, extension=f.content_type, size=len(fr), created_at=datetime.datetime.utcnow(), last_sync=datetime.datetime.utcnow())
    db.session.add(b)
    db.session.commit()
-   bd = b.to_dict()
-   return jsonify ( {'Blob': bd} ), 201
+   return jsonify ( {'Blob': b.to_dict()} ), 201
 
-#@app.route('/blob/', methods = ['PUT'])
-#def update_blob():
+@app.route('/blob/<int:id>', methods = ['PUT'])
+def update_blob(id):
+   if request.files['file']:
+      b = Blob.query.get(id)
+      f = request.files['file']
+      b.item = f.read()
+      b.filename = f.filename
+      b.extension = f.content_type
+      b.size = len(f.read())
+      b.last_sync = datetime.datetime.utcnow()
+      db.session.add(b)
+      db.session.commit()
+      return jsonift ( { 'Blob': b.to_dict() } )
 
 @app.route('/blob/<int:id>/', methods = ['GET'])
 def download_blob(id):
