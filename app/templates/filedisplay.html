@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="filedisplay">
+   {% for file in files %}
+      <div class="file">
+	      <div class="icon">
+		      <img src="{{ file.extension }}">
+	      </div>
+	      <div class="name">
+		      {{ file.filename }}
+	      </div>
+	      <div class="size">
+		      {{ file.size }}
+	      </div>
+	      <div class="details">
+		      <h3><a href="{{download_url}}{{file.id}}">download</a> | <a href="{{download_url}}{{file.id}}">delete</a> | status</h3>
+		      <p>uploaded: {{ file.created_at }}</p>
+		      <p>last sync: {{ file.last_sync }}</p>
+	      </div>
+      </div>
+   {% endfor %}
+</div>
+{% endblock %}

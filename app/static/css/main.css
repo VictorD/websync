@@ -1,0 +1,88 @@
+body {
+   font-family: 'Open Sans', sans-serif;
+	margin: 0pt;
+	padding: 0pt;
+	color: #fff;
+	background-color: #002020;
+}
+
+#wrapper{
+	width: 900px;
+	padding: 40px;
+	margin: 0 auto;
+}
+
+#header {
+   display: inline-block;
+}
+
+#header h1{
+	color: #7cfc00;
+   display: inline-block;
+}
+
+#header h2{
+	color: #fff;
+   display: inline-block;
+}
+
+#header p{
+	color: #fff;
+   font-size: 30px;
+   font-weight: bold;
+   display: inline-block; 
+}
+
+
+#content{}
+
+#filedisplay{
+	display: inline-block;
+	width: 100%;
+}
+
+.file{
+	float: left;
+	width: 400px;
+	margin: 7px;
+	background-color: #0F3737;
+}
+
+.icon{
+	float: left;
+	width: 48px;
+	height: 48px;
+	margin: 10px;
+}
+.name{
+   font-weight: bold;
+	float:left;
+	width: 180px;
+	margin: 20px;
+   margin-bottom: 0px;
+}
+.size{
+   font-weight: bold;
+	float: right;
+	margin: 25px;
+}
+
+.details{
+	float: left;
+	background-color: #001717;
+	width: 400px;
+	height: 140px;
+}
+
+.details h3{
+	margin: 20px;
+}
+
+.details p{
+	margin: 20px;
+}
+
+.details a{
+	text-decoration: none;
+   color: #fff;
+}

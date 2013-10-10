@@ -1,7 +1,8 @@
-from flask import Flask, jsonify, request, abort, make_response
+from flask import Flask, jsonify, request, abort, make_response, render_template, url_for
 from models import Blob
 from app import db, app
 import datetime
+from pprint import pprint
 
 
 @app.route('/', methods = ['GET'])
@@ -9,12 +10,18 @@ def index():
    return jsonify( {'Welcome':'to this websync thingy'} )
 
 @app.route('/blob/', methods = ['GET'])
-def get_all_blogs():
-   blob_list = Blob.query.all()
-   blob_dict = []
-   for b in blob_list:
-      blob_dict.append(b.to_dict())
-   return jsonify ( {'Blobs':blob_dict} )
+def get_all_blobs():
+   bl = Blob.query.all()
+   path = url_for('get_all_blobs', _external=True)
+   # Interate over files to fix displayable values
+   for b in bl:
+      b.filename = b.file_name()
+      b.size = b.file_size()
+      b.extension = b.icon_img()
+   return render_template("filedisplay.html",
+      files = bl,
+      download_url = path
+   )
    
 
 # Dummy html form to upload files, had issues with curl
