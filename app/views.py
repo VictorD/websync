@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort, make_response, render_template, url_for
+from flask import Flask, jsonify, request, abort, make_response, render_template, url_for, redirect
 from models import Blob
 from app import db, app
 import datetime
@@ -7,7 +7,7 @@ from pprint import pprint
 
 @app.route('/', methods = ['GET'])
 def index():
-   return jsonify( {'Welcome':'to this websync thingy'} )
+   return redirect (url_for('get_all_blobs'))
 
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
@@ -45,7 +45,7 @@ def upload_blob():
    b = Blob(item=fr, filename=f.filename, extension=f.content_type, size=len(fr), created_at=datetime.datetime.utcnow(), last_sync=datetime.datetime.utcnow())
    db.session.add(b)
    db.session.commit()
-   return jsonify ( {'Blob': b.to_dict()} ), 201
+   return redirect (url_for('get_all_blobs'))
 
 @app.route('/blob/<int:id>', methods = ['PUT'])
 def update_blob(id):
