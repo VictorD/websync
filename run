@@ -1,2 +1,3 @@
 #!/bin/sh
-python /home/websync/run.py $1
+cd /home/websync/
+python run.py $1
