@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort, make_response, render_template, url_for, redirect
-from models import Blob
+from models import *
 from app import db, app
-import datetime
+import datetime, requests, json
 from pprint import pprint
 
 
@@ -61,8 +61,16 @@ def delete_blob(id):
    db.session.commit()
    return jsonify ( {'Deleted blob':id} )
 
+# Register Node with MasterNode
 @app.before_first_request
 def initialize():
-   pprint('asdasd')
+   url = 'http://46.162.89.26:5000/' # IP for MasterNode server
+   ipaddr = ip_converter(url_for('index', _external=True))
+   payload = {'ip': ipaddr}
+   headers = {'content-type': 'application/json'}
+   r = requests.post(url, data=json.dumps(payload), headers=headers)
    return ""
+
+def ip_converter(server_url):
+   return str(server_url.split("/")[-2])
 
