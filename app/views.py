@@ -22,23 +22,8 @@ def get_all_blobs():
       files = bl,
       download_url = path
    )
-   
 
-# Dummy html form to upload files, had issues with curl
-@app.route('/upload/', methods = ['GET'])
-def test_upload():
-   return '''
-       <!doctype html>
-       <title>Upload new File</title>
-       <h1>Upload new File</h1>
-       <form action="" method=post enctype=multipart/form-data>
-         <p><input type=file name=file>
-            <input type=submit value=Upload>
-       </form>
-       '''
-
-
-@app.route('/upload/', methods =['POST'])
+@app.route('/blob/', methods =['POST'])
 def upload_blob():
    f = request.files['file']
    fr = f.read()
@@ -59,7 +44,7 @@ def update_blob(id):
       b.last_sync = datetime.datetime.utcnow()
       db.session.add(b)
       db.session.commit()
-      return jsonift ( { 'Blob': b.to_dict() } )
+      return jsonify ( { 'Blob': b.to_dict() } )
 
 @app.route('/blob/<int:id>/', methods = ['GET'])
 def download_blob(id):
@@ -75,3 +60,9 @@ def delete_blob(id):
    db.session.delete(b)
    db.session.commit()
    return jsonify ( {'Deleted blob':id} )
+
+@app.before_first_request
+def initialize():
+   pprint('asdasd')
+   return ""
+
