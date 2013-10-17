@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+	<div class="row">
+<div class="navbar navbar-inverted">
+	<div class="container">
+		<div class="navbar-header">
+			<h3 href="#">Websync Dashboard</a>
+		</div>
+	</div>
+</div>
+	</div>
+	<div class="row">
+		<div data-bind="page: {id: 'overview', role:'start'}">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>IP</th>
+						<th>Port</th>
+						<th>Status</th>
+						<th>Synchronized</th>
+						<th>asdf</th>
+					</tr>
+				</thead>	
+				<tbody data-bind="foreach:nodes">
+					<tr>
+						<td data-bind="text: ip"></td>
+						<td data-bind="text: port"></td>
+						<td><span class="snotgreen" data-bind="text: status"></span></td>
+						<td><span class="snotgreen" data-bind="text: synced"></span></td>
+						<td>
+							<a href="delete/id" class="btn btn-danger btn-sm">
+								<span class="glyphicon glyphicon-ban-circle"></span>
+								Delete
+								
+							</a>
+					</tr>
+				</tbody>
+			</table>
+			<hr/>
+			<div class="col-lg-12">
+				<form class="form-inline">
+					<div class="form-group">
+						<input data-bind="value: newNodeIP" class="form-control" type="text" placeholder="Port"/>
+					</div>
+					<button type="submit" class="btn btn-success">Add Local Node</button>
+				</form>
+				<br/>
+				<form class="form-inline">
+					<button type="submit" class="btn btn-warning">Request Creation of new Node</button>
+				</form>
+			</div>
+		</div>
+		<div data-bind="page: {id: 'logs'}">
+			Logs
+		</div>
+	</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	var VModel = function() {
+		this.nodes = ko.observableArray(
+			[{ip: "130.240.5.168", port: "5000", status: "online", synced: "True"}]
+		);
+		
+		this.updateNodes = function() {
+			$.getJSON("{{ ", function(data) { 
+	
+			});	
+		}
+
+	};
+	
+	var viewModel = new VModel();
+	pager.Href.hash = '#!/';
+	pager.extendWithPage(viewModel);
+	ko.applyBindings(viewModel);
+	pager.start();
+</script>	
+
+{% endblock %}
