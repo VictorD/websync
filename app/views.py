@@ -73,10 +73,6 @@ def delete_blob(id):
 # Register Node with MasterNode
 @app.before_first_request
 def initialize():
-   ipaddr = url_for('index', _external=True)
-   payload = {'ip': ipaddr}
-   headers = {'content-type': 'application/json'}
-   requests.post(MASTER_URL, data=json.dumps(payload), headers=headers)
    update_nodelist()
 
 # Fix the list of nodes in network(excluding self)
@@ -99,6 +95,18 @@ def convert(input):
         return input.encode('utf-8')
     else:
         return input
+
+# MasterNodes API endpoint
+@app.route('/mn/', methods = ['GET'])
+def masterOrders():
+   if request.json and 'nodeurl' in request.json and 'method' in request.json and 'fileid' in request.json:
+      n = request.json['nodeurl']
+      f = request.json['fileid']      
+      m = request.json['method']
+      network_sync(m, f, n)
+      return jsonify ({ 'Node':n, 'File':f ,'Method':m }), 200
+   else:
+      abort(404)
 
 # This methods handles communication between nodes
 # PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
@@ -125,4 +133,6 @@ def network_sync(method, fileID, node):
 def dashboard():
 	return render_template("dashboard.html", 
 		nodeIP = url_for('index', _external=True))
+
+
 
