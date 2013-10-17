@@ -121,5 +121,8 @@ def network_sync(method, fileID, node):
       requests.delete(url)
 
 
-
+@app.route('/dashboard', methods = ['GET'])
+def dashboard():
+	return render_template("dashboard.html", 
+		masterServerURL = MASTER_URL);
 
