@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+	<div class="navbar navbar-inverted">
+		<div class="container">
+			<div id="header" class="navbar-header">
+				<h1>websync </h1><p>| </p>
+			</div>
+			<ul class="menu">
+			  <li><a data-bind="page-href: 'files'">Files</a></li>
+			  <li><a data-bind="page-href: 'dashboard'">Cloud Management</a></li>
+			  <li><a data-bind="page-href: 'logs'">Logs</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div id="files" data-bind="page: {
+		id: 'files',
+		role:'start',
+		loader: spinnerLoader,
+		source: '/blob'}">
+		Loading files...
+	</div>
+
+	<div id="dashboard" data-bind="page: {
+		id: 'dashboard',
+		loader: spinnerLoader,
+		sourceOnShow: '/dashboard'}">
+		Loading dashboard...
+	</div>
+
+
+	<div data-bind="page: {id: 'logs'}">
+		Logs
+	</div>
+</div>
+
+<script type="text/javascript">
+	function spinnerLoader(page, element) {
+		var loader = {};
+		var txt = $('<img src="/static/img/loader.gif"/>');
+		loader.load = function () {
+			$(element).empty();
+			$(element).append(txt);
+		};
+		loader.unload = function () {
+			txt.remove();
+		};
+		return loader;
+	}
+
+	var IndexViewModel = function() {
+	};
+	
+	var viewModel = new IndexViewModel();
+	pager.Href.hash = '#!/';
+	pager.extendWithPage(viewModel);
+	ko.applyBindings(viewModel);
+	pager.start();
+</script>	
+
+{% endblock %}
