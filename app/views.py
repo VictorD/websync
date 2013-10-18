@@ -12,7 +12,7 @@ def index():
 	return render_template("index.html", 
 		nodeIP = url_for('index', _external=True))
 
-@app.route('/dashboard', methods = ['GET'])
+@app.route('/dashboard/', methods = ['GET'])
 def dashboard():
 	return render_template("dashboard.html", 
 		nodeIP = url_for('index', _external=True))
@@ -144,9 +144,4 @@ def updateMaster(method, fileID, timestamp):
    ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
    js = {'timestamp': ts, 'fileid': fileID, 'port': NODE_PORT}
    requests.post((MASTER_URL+method+'/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
-   
-@app.route('/dashboard', methods = ['GET'])
-def dashboard():
-	return render_template("dashboard.html", 
-		nodeIP = url_for('index', _external=True))
 
