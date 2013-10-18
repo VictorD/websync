@@ -31,8 +31,10 @@ def upload_blob(json=0):
    f = request.files['file']
    fr = f.read()
    b = Blob(item=fr, filename=f.filename, extension=f.content_type, size=len(fr), created_at=datetime.datetime.utcnow(), last_sync=datetime.datetime.utcnow())
+   pprint('Nodeport '+str(NODE_PORT))
    db.session.add(b)
    db.session.commit()
+   updateMaster('post', b.id, b.last_sync)
    if json:
       return jsonify ( { 'Blob': b.id} ), 200 
    else:
@@ -79,9 +81,12 @@ def initialize():
 # Fix the list of nodes in network(excluding self)
 def update_nodelist():
    nodeIP = url_for('index', _external=True)
+   global NODE_PORT
    NODE_PORT = nodeIP[:-1].split(':')[-1]
    r = requests.get(MASTER_URL)
    r_json = convert(r.json())
+   global nodelist
+   nodelist = []
    for i in r_json['Nodes']:
       if not i.get('ipaddr') == nodeIP:
          nodelist.append(i.get('ipaddr'))
@@ -130,7 +135,12 @@ def network_sync(method, fileID, node):
       url = node+'blob/'+str(fileID)+'/'
       requests.delete(url)
 
-
+# Method used to inform masternode about changes in files
+def updateMaster(method, fileID, timestamp):
+   ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+   js = {'timestamp': ts, 'fileid': fileID, 'port': NODE_PORT}
+   requests.post((MASTER_URL+method+'/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
+   
 @app.route('/dashboard', methods = ['GET'])
 def dashboard():
 	return render_template("dashboard.html", 
