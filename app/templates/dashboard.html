@@ -1,34 +1,32 @@
-<div id="dashboardView">
 <table class="table">
 	<thead>
 		<tr>
-			<th>IP</th>
-			<th>Port</th>
+			<th>Node URL</th>
 			<th>Status</th>
 			<th>Synchronized</th>
 			<th>asdf</th>
 		</tr>
-	</thead>	
-	<tbody data-bind="foreach:nodes">
-		<tr>
-			<td data-bind="text: ip"></td>
-			<td data-bind="text: port"></td>
-			<td><span class="snotgreen" data-bind="text: status"></span></td>
-			<td><span class="snotgreen" data-bind="text: synced"></span></td>
+	</thead>
+	<tbody>
+		{% for node in nodeList %}
+		<tr	{% if (node.ipaddr == nodeIP) %} class="thisNode" {% endif %} >
+			<td><a class="ip" href="{{ node.ipaddr }}">{{ node.ipaddr }}</a></td>
+			<td><span class="online-{{ node.status }}">{{ node.status }}</span></td>
+			<td><span class="synced-{{ node.synced }}">{{ node.synced }}</span></td>
 			<td>
-				<a href="delete/id" class="btn btn-danger btn-sm">
+				<a href="delete/{{node.id}}" class="btn btn-danger btn-sm">
 					<span class="glyphicon glyphicon-ban-circle"></span>
-					Delete
-					
+					Delete					
 				</a>
 		</tr>
+		{% endfor %}
 	</tbody>
 </table>
 <hr/>
 <div class="col-lg-12">
 	<form class="form-inline">
 		<div class="form-group">
-			<input data-bind="value: newNodeIP" class="form-control" type="text" placeholder="Port"/>
+			<input class="form-control" type="text" placeholder="Port"/>
 		</div>
 		<button type="submit" class="btn btn-success">Add Local Node</button>
 	</form>
@@ -37,21 +35,3 @@
 		<button type="submit" class="btn btn-warning">Request Creation of new Node</button>
 	</form>
 </div>
-</div>
-<script type="text/javascript">
-	var DashboardViewModel = function() {
-		this.newNodeIP = ko.observable();
-		this.nodes = ko.observableArray(
-			[{ip: "130.240.5.168", port: "5000", status: "online", synced: "True"}]
-		);
-		
-		this.updateNodes = function() {
-			$.getJSON("{{nodeIP}}", function(data) { 
-	
-			});	
-		}
-
-	};
-	
-	ko.applyBindings(new DashboardViewModel(), $("#dashboardView").get(0));
-</script>	

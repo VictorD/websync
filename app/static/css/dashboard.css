@@ -1,3 +1,13 @@
 .snotgreen {
 	color: #7cfc00;
 }
+
+
+.thisNode {
+	background-color: #001616;
+}
+.thisNode td a.ip {
+	
+	color: #7cfc00;
+
+}

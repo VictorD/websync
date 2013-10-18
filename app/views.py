@@ -11,17 +11,14 @@ nodelist = []
 def index():
 	return render_template("index.html", 
 		nodeIP = url_for('index', _external=True))
-
+	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
-   update_nodelist()
-   fullnodelist = []
-   fullnodelist.append(url_for('index', _external=True))
-   for n in nodelist:
-      fullnodelist.append(n)
-   pprint(nlist)
+   r = requests.get(MASTER_URL)
+   r_json = convert(r.json())
    return render_template("dashboard.html",
-      nlist = fullnodelist
+	  nodeIP = url_for('index', _external=True),
+      nodeList = r_json['Nodes']
    )
 		
 @app.route('/blob/', methods = ['GET'])
