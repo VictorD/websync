@@ -42,9 +42,8 @@ body {
 }
 
 .file{
-	float: left;
-	width: 400px;
-	margin: 7px;
+	padding: 0;
+	margin: 15px;
 	background-color: #0F3737;
 }
 
@@ -57,20 +56,22 @@ body {
 .name{
    font-weight: bold;
 	float:left;
-	width: 180px;
-	margin: 20px;
+	width: 150px;
+	margin: 25px 0 0 10px;
    margin-bottom: 0px;
+	overflow:hidden;
 }
 .size{
+	width: 70px;
    font-weight: bold;
 	float: right;
-	margin: 25px;
+	margin: 25px 10px;
 }
 
 .details{
 	float: left;
+	width: 100%;
 	background-color: #001717;
-	width: 400px;
 	height: 140px;
 }
 
@@ -85,4 +86,9 @@ body {
 .details a{
 	text-decoration: none;
    color: #fff;
+}
+
+.clearfix {
+	clear:both;
+	line-height: 0pt;
 }

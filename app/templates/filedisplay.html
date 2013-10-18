@@ -1,32 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-
-<div id="filedisplay">
-   {% for file in files %}
-      <div class="file" id=file-{{file.id}}>
-	      <div class="icon">
-		      <img src="{{ file.extension }}">
-	      </div>
-	      <div class="name">
-		      {{ file.filename }}
-	      </div>
-	      <div class="size">
-		      {{ file.size }}
-	      </div>
-	      <div class="details">
-		      <h3><a href="{{download_url}}{{file.id}}">download</a> | <a href="#" id="delete-{{file.id}}">delete</a> | status</h3>
-		      <p>uploaded: {{ file.created_at }}</p>
-		      <p>last sync: {{ file.last_sync }}</p>
-	      </div>
-      </div>
-   {% endfor %}
-
-<h3>Upload new File</h3>
-<form action="" method=post enctype=multipart/form-data>
-<p><input type=file name=file>
-   <input type=submit value=Upload>
-</form>
-
+<div class="row">
+	<h3>Files on this node:</h3>
+{% for file in files %}
+	<div class="file col-lg-5" id="file-{{file.id}}">
+	  <img class="icon" src="{{ file.extension }}">
+	  <div class="name">
+		  {{ file.filename }}
+	  </div>
+	  <div class="size">
+		  {{ file.size }}
+	  </div>
+	  <div class="details">
+		  <h3><a href="{{download_url}}{{file.id}}">download</a> | <a href="#" id="delete-{{file.id}}">delete</a> | status</h3>
+		  <p>uploaded: {{ file.created_at }}</p>
+		  <p>last sync: {{ file.last_sync }}</p>
+	  </div>
+	  <div class="clearfix">&nbsp</div>
+	</div>
+{% endfor %}
+</div>
+<div class="row">
+	<h3>Upload new File:</h3>
+	<form action="" method="POST" enctype="multipart/form-data">
+		<div class="form-group">
+			<input type="file" name="file">
+			<p class="help-block">TODO: Drag n' drop</p>
+			
+			<button type="submit" class="btn btn-default btn-lg">
+				<span class="glyphicon glyphicon-chevron-up"></span> Upload
+			</button>
+		</div>
+	</form>
 </div>
 
 <script type="text/javascript">
