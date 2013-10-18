@@ -85,11 +85,8 @@ def initialize():
 # Fix the list of nodes in network(excluding self)
 def update_nodelist():
    nodeIP = url_for('index', _external=True)
-<<<<<<< HEAD
    global NODE_PORT
    NODE_PORT = nodeIP[:-1].split(':')[-1]
-=======
->>>>>>> 705803be79c2591e10a0c564d058dcd91da6a84a
    r = requests.get(MASTER_URL)
    r_json = convert(r.json())
    global nodelist
@@ -142,7 +139,6 @@ def network_sync(method, fileID, node):
       url = node+'blob/'+str(fileID)+'/'
       requests.delete(url)
 
-<<<<<<< HEAD
 # Method used to inform masternode about changes in files
 def updateMaster(method, fileID, timestamp):
    ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
@@ -153,7 +149,4 @@ def updateMaster(method, fileID, timestamp):
 def dashboard():
 	return render_template("dashboard.html", 
 		nodeIP = url_for('index', _external=True))
-=======
-
->>>>>>> 705803be79c2591e10a0c564d058dcd91da6a84a
 
