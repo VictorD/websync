@@ -4,7 +4,7 @@
 			<th>Node URL</th>
 			<th>Status</th>
 			<th>Synchronized</th>
-			<th>asdf</th>
+			<th>Self Destruct</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -14,7 +14,7 @@
 			<td><span class="online-{{ node.status }}">{{ node.status }}</span></td>
 			<td><span class="synced-{{ node.synced }}">{{ node.synced }}</span></td>
 			<td>
-				<a href="delete/{{node.id}}" class="btn btn-danger btn-sm">
+				<a href="{{ node.ipaddr }}selfdestruct" class="btn btn-danger btn-sm">
 					<span class="glyphicon glyphicon-ban-circle"></span>
 					Delete					
 				</a>
@@ -32,6 +32,6 @@
 	</form>
 	<br/>
 	<form class="form-inline">
-		<button type="submit" class="btn btn-warning">Request Creation of new Node</button>
+		<button type="submit" class="btn btn-warning">Add OpenStack Node</button>
 	</form>
 </div>

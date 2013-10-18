@@ -8,6 +8,22 @@
 }
 .thisNode td a.ip {
 	
-	color: #7cfc00;
+	color: #2c2
+}
 
+.thisNode td a.ip:after
+{ 
+content:" (You are here)";
+}
+
+.synced-False {
+	color: #c22;
+}
+
+.synced-True {
+	color: #2c2;
+}
+
+.loader {
+	padding: 0px;
 }

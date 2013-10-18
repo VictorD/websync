@@ -29,17 +29,20 @@
 		sourceOnShow: '/dashboard'}">
 		Loading dashboard...
 	</div>
-
-
-	<div data-bind="page: {id: 'logs'}">
-		Logs
+	
+	<div id="logs" data-bind="page: {
+		id: 'logs',
+		loader: spinnerLoader,
+		sourceOnShow: '/logs'}">
+		Loading logs...
 	</div>
+
 </div>
 
 <script type="text/javascript">
 	function spinnerLoader(page, element) {
 		var loader = {};
-		var txt = $('<img src="/static/img/loader.gif"/>');
+		var txt = $('<img class="loader" src="/static/img/loader.gif"/>');
 		loader.load = function () {
 			$(element).empty();
 			$(element).append(txt);
