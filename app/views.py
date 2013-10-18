@@ -14,8 +14,13 @@ def index():
 
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
+   update_nodelist()
+   fullnodelist = []
+   fullnodelist.append(url_for('index', _external=True))
+   for n in nodelist:
+      fullnodelist.append(n)
 	return render_template("dashboard.html", 
-		nodeIP = url_for('index', _external=True))
+		nlist = fullnodelist)
 		
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
