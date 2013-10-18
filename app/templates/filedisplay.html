@@ -1,5 +1,3 @@
-{% extends "base.html" %}
-{% block content %}
 <div class="row">
 	<h3>Files on this node:</h3>
 {% for file in files %}
@@ -22,7 +20,7 @@
 </div>
 <div class="row">
 	<h3>Upload new File:</h3>
-	<form action="" method="POST" enctype="multipart/form-data">
+	<form action="/blob/" method="POST" enctype="multipart/form-data">
 		<div class="form-group">
 			<input type="file" name="file">
 			<p class="help-block">TODO: Drag n' drop</p>
@@ -47,5 +45,3 @@
         });
 	});
 </script>	
-
-{% endblock %}

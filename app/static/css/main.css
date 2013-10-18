@@ -56,7 +56,7 @@ body {
 .name{
    font-weight: bold;
 	float:left;
-	width: 150px;
+	width: 50%;
 	margin: 25px 0 0 10px;
    margin-bottom: 0px;
 	overflow:hidden;
@@ -91,4 +91,15 @@ body {
 .clearfix {
 	clear:both;
 	line-height: 0pt;
+}
+
+.menu li {
+	display: block;
+	float: left;
+	font-size: 120%;
+	margin: 30px 20px;
+}
+
+.menu li a {
+	color: #fff;
 }

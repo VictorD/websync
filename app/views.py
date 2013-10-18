@@ -5,13 +5,18 @@ import datetime, requests, json
 from pprint import pprint
 
 MASTER_URL = 'http://46.162.89.26:5000/' # API access point for MasterNode
-NODE_PORT = 0
 nodelist = []
 
 @app.route('/', methods = ['GET'])
 def index():
-   return redirect (url_for('get_all_blobs'))
+	return render_template("index.html", 
+		nodeIP = url_for('index', _external=True))
 
+@app.route('/dashboard', methods = ['GET'])
+def dashboard():
+	return render_template("dashboard.html", 
+		nodeIP = url_for('index', _external=True))
+		
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
    bl = Blob.query.all()
@@ -36,7 +41,7 @@ def upload_blob(json=0):
    if json:
       return jsonify ( { 'Blob': b.id} ), 200 
    else:
-      return redirect (url_for('get_all_blobs'))
+      return redirect (url_for('index'))
 
 #TODO: Fix this
 @app.route('/blob/<int:id>', methods = ['PUT'])
@@ -79,7 +84,6 @@ def initialize():
 # Fix the list of nodes in network(excluding self)
 def update_nodelist():
    nodeIP = url_for('index', _external=True)
-   NODE_PORT = nodeIP[:-1].split(':')[-1]
    r = requests.get(MASTER_URL)
    r_json = convert(r.json())
    for i in r_json['Nodes']:
@@ -131,8 +135,4 @@ def network_sync(method, fileID, node):
       requests.delete(url)
 
 
-@app.route('/dashboard', methods = ['GET'])
-def dashboard():
-	return render_template("dashboard.html", 
-		nodeIP = url_for('index', _external=True))
 
