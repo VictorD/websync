@@ -5,6 +5,7 @@ import datetime, requests, json
 from pprint import pprint
 
 MASTER_URL = 'http://46.162.89.26:5000/' # API access point for MasterNode
+NODE_PORT = 0
 nodelist = []
 
 @app.route('/', methods = ['GET'])
@@ -78,6 +79,7 @@ def initialize():
 # Fix the list of nodes in network(excluding self)
 def update_nodelist():
    nodeIP = url_for('index', _external=True)
+   NODE_PORT = nodeIP[:-1].split(':')[-1]
    r = requests.get(MASTER_URL)
    r_json = convert(r.json())
    for i in r_json['Nodes']:
