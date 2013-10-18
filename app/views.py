@@ -19,8 +19,10 @@ def dashboard():
    fullnodelist.append(url_for('index', _external=True))
    for n in nodelist:
       fullnodelist.append(n)
-	return render_template("dashboard.html", 
-		nlist = fullnodelist)
+   pprint(nlist)
+   return render_template("dashboard.html",
+      nlist = fullnodelist
+   )
 		
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
