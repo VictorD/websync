@@ -1,37 +1,53 @@
-<table class="table">
-	<thead>
-		<tr>
-			<th>Node URL</th>
-			<th>Status</th>
-			<th>Synchronized</th>
-			<th>Self Destruct</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for node in nodeList %}
-		<tr	{% if (node.ipaddr == nodeIP) %} class="thisNode" {% endif %} >
-			<td><a class="ip" href="{{ node.ipaddr }}">{{ node.ipaddr }}</a></td>
-			<td><span class="online-{{ node.status }}">{{ node.status }}</span></td>
-			<td><span class="synced-{{ node.synced }}">{{ node.synced }}</span></td>
-			<td>
-				<a href="{{ node.ipaddr }}selfdestruct" class="btn btn-danger btn-sm">
-					<span class="glyphicon glyphicon-ban-circle"></span>
-					Delete					
-				</a>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
-<hr/>
-<div class="col-lg-12">
-	<form class="form-inline">
-		<div class="form-group">
-			<input class="form-control" type="text" placeholder="Port"/>
-		</div>
-		<button type="submit" class="btn btn-success">Add Local Node</button>
-	</form>
-	<br/>
-	<form class="form-inline">
-		<button type="submit" class="btn btn-warning">Add OpenStack Node</button>
-	</form>
+<div class="row">
+   <div class="col-xs-12">
+   {% if nodeList %}
+      <table class="table">
+         <thead>
+            <tr>
+               <th>Node URL</th>
+               <th>Status</th>
+               <th>Synchronized</th>
+               <th>Self Destruct</th>
+            </tr>
+         </thead>
+         <tbody>
+            {% for node in nodeList %}
+            <tr {% if (node.ipaddr == thisURL) %} class="thisNode" {% endif %} >
+               <td><a class="ip" href="{{ node.ipaddr }}">{{ node.ipaddr }}</a></td>
+               <td><span class="online-{{ node.status }}">{{ node.status }}</span></td>
+               <td><span class="synced-{{ node.synced }}">{{ node.synced }}</span></td>
+               <td>
+                  <a href="{{ node.ipaddr }}selfdestruct" class="btn btn-danger btn-sm">
+                     <span class="glyphicon glyphicon-ban-circle"></span>
+                     Delete					
+                  </a>
+            </tr>
+            {% endfor %}
+         </tbody>
+      </table>
+      {% else %}
+      <p>ERROR: Can't reach MasterServer at <a href="{{masterURL}}">{{masterURL}}</a></p>
+      <p>This node is in Offline Mode</p>
+      <p>
+         <a href="{{ thisURL }}selfdestruct" class="btn btn-danger btn-sm">
+            <span class="glyphicon glyphicon-ban-circle"></span>
+            Tell node to Self Destruct
+         </a>
+      </p>
+   {% endif %}
+   </div>
+</div>
+<div class="row">
+   <div class="col-xs-6">
+      <form class="form-inline">
+         <div class="form-group">
+            <input class="form-control" size="5" maxsize="5" type="text" placeholder="Port"/>
+         </div>
+         <button type="submit" class="btn btn-success">Add Local Node</button>
+      </form>
+      <br/>
+      <form class="form-inline">
+         <button type="submit" class="btn btn-warning">Add OpenStack Node</button>
+      </form>
+   </div>
 </div>

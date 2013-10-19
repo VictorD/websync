@@ -3,8 +3,9 @@ from models import *
 from app import db, app
 import datetime, requests, json
 from pprint import pprint
+from utils import remove_node
+from utils import convert
 
-MASTER_URL = 'http://46.162.89.26:5000/' # API access point for MasterNode
 nodelist = []
 
 @app.route('/', methods = ['GET'])
@@ -14,12 +15,17 @@ def index():
 	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
-   r = requests.get(MASTER_URL)
+   r = requests.get(app.config['master_server_url'])
    r_json = convert(r.json())
    return render_template("dashboard.html",
-	  nodeIP = url_for('index', _external=True),
+      nodeIP = url_for('index', _external=True),
       nodeList = r_json['Nodes']
    )
+   
+@app.route('/selfdestruct', methods=['GET'])
+def shutdown():
+    remove_node()
+    return 'Server is shutting down...'
 		
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
@@ -92,7 +98,8 @@ def update_nodelist():
    nodeIP = url_for('index', _external=True)
    global NODE_PORT
    NODE_PORT = nodeIP[:-1].split(':')[-1]
-   r = requests.get(MASTER_URL)
+   masterURL = app.config['master_server_url']
+   r = requests.get(masterURL)
    r_json = convert(r.json())
    global nodelist
    nodelist = []
@@ -100,18 +107,6 @@ def update_nodelist():
       if not i.get('ipaddr') == nodeIP:
          nodelist.append(i.get('ipaddr'))
  
-# Convert JSON results from unicode to utf-8
-# Taken from: http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python
-def convert(input):
-    if isinstance(input, dict):
-        return {convert(key): convert(value) for key, value in input.iteritems()}
-    elif isinstance(input, list):
-        return [convert(element) for element in input]
-    elif isinstance(input, unicode):
-        return input.encode('utf-8')
-    else:
-        return input
-
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
 def masterOrders():
@@ -148,5 +143,5 @@ def network_sync(method, fileID, node):
 def updateMaster(method, fileID, timestamp):
    ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
    js = {'timestamp': ts, 'fileid': fileID, 'port': NODE_PORT}
-   requests.post((MASTER_URL+method+'/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
+   requests.post((app.config['master_server_url']+method+'/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
 
