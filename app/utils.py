@@ -6,20 +6,23 @@ from pprint import pprint
 def add_node(port, headers):
    payload = {'port': port}
    try:
-      r = requests.post(app.config['master_server_url'], data=json.dumps(payload), headers=headers)
+      masterURL = app.config['master_server_url']
+      pprint('Registering node at port ' + port + ' with master at ' + masterURL)
+      r = requests.post(masterURL, data=json.dumps(payload), headers=headers)
       r_json = convert(r.json())
       id = r_json.get('Node')
    except ValueError:
+      pprint('ERROR: Registration failed. Running in offline mode!')
       id = -1
    app.config['node_id']   = id
    app.config['node_port'] = port
 
 def remove_node():
-   unregisterFromMaster()
    try:
       func = request.environ.get('werkzeug.server.shutdown')
       if func is None:
          raise RuntimeError('Not running with the Werkzeug Server')  
+      unregisterFromMaster()         
       func()
    except:
       pass
