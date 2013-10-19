@@ -79,6 +79,7 @@ def delete_blob(id):
    b = Blob.query.get(id)
    db.session.delete(b)
    db.session.commit()
+   updateMaster('delete', b.id, b.last_sync)
    return jsonify ( {'Deleted blob':id} ), 200
 
 # Register Node with MasterNode
