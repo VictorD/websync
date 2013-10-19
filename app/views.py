@@ -4,6 +4,7 @@ from app import db, app
 import datetime, requests, json
 from pprint import pprint
 from utils import master_update_nodes, master_update_file, shut_down_everything, convert
+from subprocess import Popen
 
 # Register Node with MasterNode
 @app.before_first_request
@@ -17,12 +18,18 @@ def index():
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
    masterURL = app.config['MASTER_URL']
-   r = requests.get(masterURL)
-   r_json = convert(r.json())
+   nodes = []
+   try:
+      r = requests.get(masterURL)
+      r_json = convert(r.json())
+      nodes = r_json['Nodes']
+   except requests.ConnectionError:
+      pass
+
    return render_template("dashboard.html",
       thisURL   = url_for('index', _external=True),
       masterURL = masterURL,
-      nodeList  = r_json['Nodes'])
+      nodeList  = nodes)
    
 @app.route('/selfdestruct', methods=['GET'])
 def shutdown():
@@ -87,7 +94,7 @@ def delete_blob(id):
    b = Blob.query.get(id)
    db.session.delete(b)
    db.session.commit()
-   updateMaster('delete', b.id, b.last_sync)
+   master_update_file('delete', b.id, b.last_sync)
    return jsonify ( {'Deleted blob':id} ), 200
 
 # MasterNodes API endpoint
@@ -101,4 +108,11 @@ def masterOrders():
       return jsonify ({ 'Node':n, 'File':f ,'Method':m }), 200
    else:
       abort(404)
+      
+@app.route('/node/createLocal', methods = ['POST'])
+def create_local_node():
+   port = request.form['port']
+   Popen(["python", "run.py", port])
+   master_update_nodes()
+   return redirect (url_for('index') + "#!/dashboard")
 

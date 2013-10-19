@@ -2,6 +2,7 @@ from app import app
 from flask import request, url_for
 import os, requests, json
 from pprint import pprint
+from subprocess import call
 
 nodelist = []
 
@@ -16,7 +17,10 @@ def add_node(portStr, headers):
          raise ValueError
       pprint('Node registered with ID:' + str(id))
    except ValueError:
-      pprint('ERROR: Registration failed. Running in offline mode!')
+      pprint('ERROR: Master server returned something weird. Running in offline mode!')
+      id = -1
+   except requests.ConnectionError:
+      pprint('ERROR: Master Server not responding. Running in offline mode!')
       id = -1
 
    idStr = str(id)
