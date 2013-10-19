@@ -2,16 +2,13 @@ from app import app, db
 import os, requests, json
 from app.utils import add_node, remove_node
 
-MASTER_URL = 'http://46.162.89.26:5000/' # API access point for MasterNode
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 if __name__ == '__main__':
    import sys 
    portint=int(sys.argv[-1])
    portstr=str(sys.argv[-1])
    if isinstance(portint, int) and portint < 65535:
-      app.config['MASTER_URL'] = MASTER_URL
-      app.config['BASEDIR'] = basedir
+      app.config['MASTER_URL'] = 'http://46.162.89.26:5000/' # API access point for MasterNode
+      app.config['BASEDIR']    = os.path.abspath(os.path.dirname(__file__))
       
       # Register Node with MasterNode
       headers = {'content-type': 'application/json'}   

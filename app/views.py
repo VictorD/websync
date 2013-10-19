@@ -3,10 +3,12 @@ from models import *
 from app import db, app
 import datetime, requests, json
 from pprint import pprint
-from utils import shut_down_everything
-from utils import convert
+from utils import master_update_nodes, master_update_file, shut_down_everything, convert
 
-nodelist = []
+# Register Node with MasterNode
+@app.before_first_request
+def initialize():
+   master_update_nodes()
 
 @app.route('/', methods = ['GET'])
 def index():
@@ -48,7 +50,7 @@ def upload_blob(json=0):
    b = Blob(item=fr, filename=f.filename, extension=f.content_type, size=len(fr), created_at=datetime.datetime.utcnow(), last_sync=datetime.datetime.utcnow())
    db.session.add(b)
    db.session.commit()
-   updateMaster('post', b.id, b.last_sync)
+   master_update_file('post', b.id, b.last_sync)
    if json:
       return jsonify ( { 'Blob': b.id} ), 200 
    else:
@@ -88,25 +90,6 @@ def delete_blob(id):
    updateMaster('delete', b.id, b.last_sync)
    return jsonify ( {'Deleted blob':id} ), 200
 
-# Register Node with MasterNode
-@app.before_first_request
-def initialize():
-   update_nodelist()
-
-# Fix the list of nodes in network(excluding self)
-def update_nodelist():
-   nodeIP = url_for('index', _external=True)
-   global NODE_PORT
-   NODE_PORT = nodeIP[:-1].split(':')[-1]
-   masterURL = app.config['MASTER_URL']
-   r = requests.get(masterURL)
-   r_json = convert(r.json())
-   global nodelist
-   nodelist = []
-   for i in r_json['Nodes']:
-      if not i.get('ipaddr') == nodeIP:
-         nodelist.append(i.get('ipaddr'))
- 
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
 def masterOrders():
@@ -118,30 +101,4 @@ def masterOrders():
       return jsonify ({ 'Node':n, 'File':f ,'Method':m }), 200
    else:
       abort(404)
-
-# This methods handles communication between nodes
-# PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
-def network_sync(method, fileID, node):
-   if method == 'POST':
-      url = node+'blob/'
-      f = Blob.query.get(fileID)
-      files = {'file':(f.filename, f.item)}
-      requests.post(url, files=files)
-
-   #TODO: Fix this
-   if method == 'PUT':
-      url = node+'blob/'+str(fileID)+'/'
-      f = Blob.query.get(fileID)
-      files = {'file':(f.filename, f.item)}
-      requests.put(url, files=files)
-           
-   if method == 'DELETE':
-      url = node+'blob/'+str(fileID)+'/'
-      requests.delete(url)
-
-# Method used to inform masternode about changes in files
-def updateMaster(method, fileID, timestamp):
-   ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
-   js = {'timestamp': ts, 'fileid': fileID, 'port': NODE_PORT}
-   requests.post((app.config['master_server_url']+method+'/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
 
