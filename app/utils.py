@@ -3,38 +3,44 @@ from flask import request
 import os, requests, json
 from pprint import pprint
 
-def add_node(port, headers):
-   payload = {'port': port}
+def add_node(portStr, headers):
+   payload = {'port': portStr}
    try:
-      masterURL = app.config['master_server_url']
-      pprint('Registering node at port ' + port + ' with master at ' + masterURL)
+      masterURL = app.config['MASTER_URL']
+      pprint('Registering node at port ' + portStr + ' with master at ' + masterURL)
       r = requests.post(masterURL, data=json.dumps(payload), headers=headers)
-      r_json = convert(r.json())
-      id = r_json.get('Node')
+      id = r.json().get('Node')
+      if not isinstance(id, int):
+         raise ValueError
+      pprint('Node registered with ID:' + str(id))
    except ValueError:
       pprint('ERROR: Registration failed. Running in offline mode!')
       id = -1
-   app.config['node_id']   = id
-   app.config['node_port'] = port
 
-def remove_node():
+   idStr = str(id)
+   app.config['NODE_ID']   = idStr
+   app.config['NODE_PORT'] = portStr
+   pprint("Node created with id:" + idStr + ", at port:" + portStr)
+
+def shut_down_everything():  
    try:
       func = request.environ.get('werkzeug.server.shutdown')
-      if func is None:
-         raise RuntimeError('Not running with the Werkzeug Server')  
-      unregisterFromMaster()         
-      func()
+      if func:
+         func()          
    except:
       pass
-    
-def unregisterFromMaster():
-   masterURL = app.config['master_server_url']
-   pprint("Destroying node...")
+
+def remove_node():
+   masterURL = app.config['MASTER_URL']
+   
    # Remove Node from MasterNode
-   id    = app.config['node_id']
-   port  = app.config['node_port'] 
-   dbdir = app.config['basedir'] 
-   if id > 0:
+   id    = app.config['NODE_ID']
+   port  = app.config['NODE_PORT'] 
+   dbdir = app.config['BASEDIR'] 
+   
+   pprint("Destroying node:" + id + ", at port:" + port)
+   if int(id) > 0:
+      pprint("Unregistering from master server")
       requests.delete(masterURL + str(id) + ('/'), headers={'content-type': 'application/json'})
       
    # Remove database when server shuts down    

@@ -10,8 +10,8 @@ if __name__ == '__main__':
    portint=int(sys.argv[-1])
    portstr=str(sys.argv[-1])
    if isinstance(portint, int) and portint < 65535:
-      app.config['master_server_url'] = MASTER_URL
-      app.config['basedir'] = basedir
+      app.config['MASTER_URL'] = MASTER_URL
+      app.config['BASEDIR'] = basedir
       
       # Register Node with MasterNode
       headers = {'content-type': 'application/json'}   
@@ -25,4 +25,3 @@ if __name__ == '__main__':
       app.run('0.0.0.0', use_reloader=False, port=portint,debug=True)
 
       remove_node()
-      

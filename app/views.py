@@ -3,28 +3,28 @@ from models import *
 from app import db, app
 import datetime, requests, json
 from pprint import pprint
-from utils import remove_node
+from utils import shut_down_everything
 from utils import convert
 
 nodelist = []
 
 @app.route('/', methods = ['GET'])
 def index():
-	return render_template("index.html", 
-		nodeIP = url_for('index', _external=True))
+	return render_template("index.html")
 	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
-   r = requests.get(app.config['master_server_url'])
+   masterURL = app.config['MASTER_URL']
+   r = requests.get(masterURL)
    r_json = convert(r.json())
    return render_template("dashboard.html",
-      nodeIP = url_for('index', _external=True),
-      nodeList = r_json['Nodes']
-   )
+      thisURL   = url_for('index', _external=True),
+      masterURL = masterURL,
+      nodeList  = r_json['Nodes'])
    
 @app.route('/selfdestruct', methods=['GET'])
 def shutdown():
-    remove_node()
+    shut_down_everything()
     return 'Server is shutting down...'
 		
 @app.route('/blob/', methods = ['GET'])
@@ -98,7 +98,7 @@ def update_nodelist():
    nodeIP = url_for('index', _external=True)
    global NODE_PORT
    NODE_PORT = nodeIP[:-1].split(':')[-1]
-   masterURL = app.config['master_server_url']
+   masterURL = app.config['MASTER_URL']
    r = requests.get(masterURL)
    r_json = convert(r.json())
    global nodelist
