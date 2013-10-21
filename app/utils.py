@@ -3,38 +3,34 @@ from flask import request, url_for
 import os, requests, json
 from pprint import pprint
 from subprocess import call
+from tornado.ioloop import IOLoop
 
 nodelist = []
 
-def add_node(portStr, headers):
-   payload = {'port': portStr}
+def add_node(port):
+   masterURL = app.config['MASTER_URL']
+   pprint('Registering node at port ' + port + ' with master at ' + masterURL)
    try:
-      masterURL = app.config['MASTER_URL']
-      pprint('Registering node at port ' + portStr + ' with master at ' + masterURL)
-      r = requests.post(masterURL, data=json.dumps(payload), headers=headers)
+      data    = {'port': port}
+      headers = {'content-type': 'application/json'}   
+      regResponse = requests.post(masterURL, data=json.dumps(data), headers=headers, timeout=2)
+      id = get_registration_id(regResponse)
+   except (ValueError, requests.ConnectionError, requests.Timeout):
+      pprint('ERROR: Master Server not responding. Running in offline mode!')
+      id = "-1"
+
+   app.config['NODE_ID']   = id
+   app.config['NODE_PORT'] = port
+   pprint("Node created with id:" + id + ", at port:" + port)
+
+def get_registration_id(r):
       id = r.json().get('Node')
       if not isinstance(id, int):
          raise ValueError
-      pprint('Node registered with ID:' + str(id))
-   except ValueError:
-      pprint('ERROR: Master server returned something weird. Running in offline mode!')
-      id = -1
-   except requests.ConnectionError:
-      pprint('ERROR: Master Server not responding. Running in offline mode!')
-      id = -1
+      return str(id)
 
-   idStr = str(id)
-   app.config['NODE_ID']   = idStr
-   app.config['NODE_PORT'] = portStr
-   pprint("Node created with id:" + idStr + ", at port:" + portStr)
-
-def shut_down_everything():  
-   try:
-      func = request.environ.get('werkzeug.server.shutdown')
-      if func:
-         func()          
-   except:
-      pass
+def shut_down_everything():
+   raise KeyboardInterrupt
 
 def remove_node():
    masterURL = app.config['MASTER_URL']
@@ -47,13 +43,10 @@ def remove_node():
    pprint("Destroying node:" + id + ", at port:" + port)
    if int(id) > 0:
       pprint("Unregistering from master server")
-      requests.delete(masterURL + str(id) + ('/'), headers={'content-type': 'application/json'})
+      requests.delete(masterURL + str(id) + ('/'), headers={'content-type': 'application/json'}, timeout=1)
       
    # Remove database when server shuts down    
    os.remove(os.path.join(dbdir, (port + '.db')))
-   
-def createLocalNode(port):
-	pprint("Creating local node at port:" + port)
    
 # Convert JSON results from unicode to utf-8
 # Taken from: http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python

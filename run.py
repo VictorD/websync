@@ -1,3 +1,6 @@
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
 from app import app, db
 import os, requests, json
 from app.utils import add_node, remove_node
@@ -11,14 +14,18 @@ if __name__ == '__main__':
       app.config['BASEDIR']    = os.path.abspath(os.path.dirname(__file__))
       
       # Register Node with MasterNode
-      headers = {'content-type': 'application/json'}   
-      add_node(portstr, headers)
+      add_node(portstr)
 
       # Create database
       db.create_all()
 
       # Run the Node-Server
-
-      app.run('0.0.0.0', use_reloader=False, port=portint,debug=True)
-
-      remove_node()
+      http_server = HTTPServer(WSGIContainer(app))      
+      http_server.listen(portint)
+      try:
+         IOLoop.instance().start()
+      except KeyboardInterrupt:
+         IOLoop.instance().stop()
+         remove_node()
+         print "exited cleanly"
+    

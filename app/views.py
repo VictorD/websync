@@ -20,10 +20,10 @@ def dashboard():
    masterURL = app.config['MASTER_URL']
    nodes = []
    try:
-      r = requests.get(masterURL)
+      r = requests.get(masterURL, timeout=2)
       r_json = convert(r.json())
       nodes = r_json['Nodes']
-   except requests.ConnectionError:
+   except (requests.Timeout, requests.ConnectionError):
       pass
 
    return render_template("dashboard.html",
