@@ -3,7 +3,7 @@ from models import *
 from app import db, app
 import datetime, requests, json
 from pprint import pprint
-from utils import master_update_nodes, master_update_file, shut_down_everything, convert
+from utils import master_update_nodes, master_update_file, shut_down_everything, convert, string_to_timestamp, network_sync
 from subprocess import Popen
 
 # Register Node with MasterNode
@@ -52,34 +52,50 @@ def get_all_blobs():
 
 @app.route('/blob/', methods =['POST'])
 def upload_blob(json=0):
-   f = request.files['file']
-   fr = f.read()
-   b = Blob(item=fr, filename=f.filename, extension=f.content_type, size=len(fr), created_at=datetime.datetime.utcnow(), last_sync=datetime.datetime.utcnow())
+   b = received_blob(request)
    db.session.add(b)
    db.session.commit()
-   master_update_file('post', b.id, b.last_sync)
+   master_update_file('post', b.global_id, b.last_sync)
    if json:
-      return jsonify ( { 'Blob': b.id} ), 200 
+      return jsonify ( { 'Blob': b.global_id} ), 200 
    else:
       return redirect (url_for('index'))
 
-#TODO: Fix this
-@app.route('/blob/<int:id>', methods = ['PUT'])
+@app.route('/blob/<int:id>/', methods = ['PUT'])
 def update_blob(id):
-   if request.files['file']:
+   f = request.files['file']
+   if f:
+      method = 'put'
+      rb = received_blob(request)
       b = Blob.query.get(id)
       if b:
-         f = request.files['file']
-         b.item = f.read()
-         b.filename = f.filename
-         b.extension = f.content_type
-         b.size = len(f.read())
-         b.last_sync = datetime.datetime.utcnow()
-         db.session.add(b)
-         db.session.commit()
-         return jsonify ( { 'Blob': b.id } ), 200
+         b.item = rb.item
+         b.filename = rb.filename
+         b.extension = rb.extension
+         b.size = len(rb.item)
+         b.last_sync = rb.last_sync
+         rb = b
       else:
-         upload_blob(json=1)
+         method = 'post'
+         db.session.add(rb)
+
+      db.session.commit()
+      master_update_file(method, rb.global_id, rb.last_sync)
+      return jsonify ( { 'Blob': id } ), 200
+   else:
+      abort(404)
+
+def received_blob(request):
+   ts = datetime.datetime.utcnow()
+   #if request.files['timestamp']:
+   #ts = string_to_timestamp(request.files['timestamp'])
+
+   f  = request.files['file']
+   fr = f.read()
+   pprint (request.files)
+   return Blob(item=fr, filename=f.filename, extension=f.content_type, 
+        size=len(fr), created_at = ts, last_sync = ts)
+
 
 @app.route('/blob/<int:id>/', methods = ['GET'])
 def download_blob(id):
@@ -94,7 +110,7 @@ def delete_blob(id):
    b = Blob.query.get(id)
    db.session.delete(b)
    db.session.commit()
-   master_update_file('delete', b.id, b.last_sync)
+   master_update_file('delete', b.global_id, b.last_sync)
    return jsonify ( {'Deleted blob':id} ), 200
 
 # MasterNodes API endpoint

@@ -2,6 +2,7 @@ from app import db
 
 class Blob(db.Model):
    id = db.Column(db.Integer, primary_key = True)
+   global_id = db.Column(db.Integer)
    filename = db.Column(db.String(50))
    extension = db.Column(db.String(20))
    size = db.Column(db.Integer)
@@ -12,6 +13,7 @@ class Blob(db.Model):
    def to_dict(self):
       return dict(
          id = self.id,
+         global_id = self.global_id,
          filename = self.filename,
          extension = self.extension,
          size = self.size,

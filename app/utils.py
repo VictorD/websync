@@ -1,4 +1,5 @@
 from app import app
+from models import Blob
 from flask import request, url_for
 import os, requests, json
 from pprint import pprint
@@ -77,22 +78,16 @@ def master_update_nodes():
 # This methods handles communication between nodes
 # PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
 def network_sync(method, fileID, node):
-   if method == 'POST':
-      url = node+'blob/'
-      f = Blob.query.get(fileID)
-      files = {'file':(f.filename, f.item)}
-      requests.post(url, files=files)
-
-   #TODO: Fix this
-   if method == 'PUT':
-      url = node+'blob/'+str(fileID)+'/'
-      f = Blob.query.get(fileID)
-      files = {'file':(f.filename, f.item)}
-      requests.put(url, files=files)
-           
-   if method == 'DELETE':
-      url = node+'blob/'+str(fileID)+'/'
-      requests.delete(url)
+   f = Blob.query.get(fileID)
+   if f:
+      url   = node+'/blob/'
+      files = {'timestamp':(f.last_sync, ''), 'file':(f.filename, f.item)}
+      if method == 'POST':        
+         requests.post(url, files=files)
+      elif method == 'PUT':
+         requests.put(url + str(fileID) + '/', files=files)
+      elif method == 'DELETE':
+         requests.delete(url + str(fileID) + '/')
 
 # Method used to inform masternode about changes in files
 def master_update_file(method, fileID, timestamp):
@@ -100,6 +95,13 @@ def master_update_file(method, fileID, timestamp):
    if int(id) > 0:
       masterURL = app.config['MASTER_URL']
       port = app.config['NODE_PORT']
-      ts = timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+      ts = timestamp_to_string(timestamp)
       js = {'timestamp': ts, 'fileid': fileID, 'port': port}
       requests.post((masterURL + method + '/'), data=json.dumps(js), headers = {'content-type': 'application/json'})
+
+def timestamp_to_string(timestamp):
+   return timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+def string_to_timestamp(timeStr):
+  return datetime.datetime.strptime(timeStr, '%Y-%m-%d %H:%M:%S.%f')
+
