@@ -1,10 +1,11 @@
 from flask import Flask, jsonify, request, abort, make_response, render_template, url_for, redirect
 from models import *
 from app import db, app
-import datetime, requests, json
+import datetime, requests, json, logging
 from pprint import pprint
-from utils import master_update_nodes, master_update_file, shut_down_everything, convert, string_to_timestamp, network_sync
+from utils import master_update_nodes, master_update_file, convert, string_to_timestamp, network_sync
 from subprocess import Popen
+import server
 
 # Register Node with MasterNode
 @app.before_first_request
@@ -33,8 +34,8 @@ def dashboard():
    
 @app.route('/selfdestruct', methods=['GET'])
 def shutdown():
-    shut_down_everything()
-    return 'Server is shutting down...'
+    server.stop()
+    return "<h3>Shutting down server...</h3>"
 		
 @app.route('/blob/', methods = ['GET'])
 def get_all_blobs():
@@ -50,52 +51,75 @@ def get_all_blobs():
       download_url = path
    )
 
-@app.route('/blob/', methods =['POST'])
-def upload_blob(json=0):
-   b = received_blob(request)
-   db.session.add(b)
-   db.session.commit()
-   master_update_file('post', b.global_id, b.last_sync)
+#@app.route('/getFile/<int:id>/<targetPort>/', methods = ['GET'])
+#def dummyPut(id,targetPort):
+#   nodeURL    = url_for('index', _external=True)
+#   targetURL = nodeURL[:-5] + str(targetPort) + '/'
+#   headers={'content-type': 'application/json'}
+#   
+#   thisPort = app.config['NODE_PORT']
+#   data = json.dumps({
+#      'nodeurl': nodeURL, 
+#      'fileid': str(id), 
+#      'method': 'post'
+#   })
+#   pprint("Sending GET request to " + targetURL + "mn/")
+#   requests.get(targetURL + 'mn/', data=data, headers=headers, timeout=10)
+#   return "PUT file " + str(id) + " to " + targetURL
+
+   
+@app.route('/blob/',          methods = ['POST', 'PUT'])
+@app.route('/blob/<int:id>/', methods = ['POST', 'PUT'])
+def update_blob(id=None, json=0):
+   logging.info("Received BLOB Update")
+   b = None
+   rb = blob_from_request(request)
+   method = 'post'
+   if id and int(id) > 0:
+      b = Blob.query.get(id)
+      if b:
+         # update existing blob
+         method = 'put'
+         b.item      = rb.item
+         b.filename  = rb.filename
+         b.extension = rb.extension
+         b.size      = len(rb.item)
+         b.last_sync = rb.last_sync
+
+   if not id or not b:
+      # add new blob
+      b = rb
+      b.global_id = get_next_global_id()
+      db.session.add(b)
+      
+   db.session.commit()      
+   master_update_file(method, b.global_id, b.last_sync)
+
    if json:
-      return jsonify ( { 'Blob': b.global_id} ), 200 
+      return jsonify ( { 'Blob': b.id } ), 200
    else:
       return redirect (url_for('index'))
 
-@app.route('/blob/<int:id>/', methods = ['PUT'])
-def update_blob(id):
-   f = request.files['file']
-   if f:
-      method = 'put'
-      rb = received_blob(request)
-      b = Blob.query.get(id)
-      if b:
-         b.item = rb.item
-         b.filename = rb.filename
-         b.extension = rb.extension
-         b.size = len(rb.item)
-         b.last_sync = rb.last_sync
-         rb = b
-      else:
-         method = 'post'
-         db.session.add(rb)
-
-      db.session.commit()
-      master_update_file(method, rb.global_id, rb.last_sync)
-      return jsonify ( { 'Blob': id } ), 200
-   else:
-      abort(404)
-
-def received_blob(request):
+def blob_from_request(request):
    ts = datetime.datetime.utcnow()
    #if request.files['timestamp']:
    #ts = string_to_timestamp(request.files['timestamp'])
-
    f  = request.files['file']
    fr = f.read()
-   pprint (request.files)
    return Blob(item=fr, filename=f.filename, extension=f.content_type, 
         size=len(fr), created_at = ts, last_sync = ts)
+        
+def get_next_global_id():
+   masterURL = app.config['MASTER_URL']
+   gid = 0
+   try:
+      r = requests.get(masterURL + "next/", timeout=2)
+      r_json = convert(r.json())
+      gid = int(r_json['nextID'])
+   except (requests.ConnectionError, requests.Timeout):
+      pass
 
+   return gid
 
 @app.route('/blob/<int:id>/', methods = ['GET'])
 def download_blob(id):
@@ -116,10 +140,12 @@ def delete_blob(id):
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
 def masterOrders():
+   logging.info("Received MN request")
    if request.json and 'nodeurl' in request.json and 'method' in request.json and 'fileid' in request.json:
       n = request.json['nodeurl']
       f = request.json['fileid']      
       m = request.json['method']
+      logging.info("Performing network sync")
       network_sync(m, f, n)
       return jsonify ({ 'Node':n, 'File':f ,'Method':m }), 200
    else:

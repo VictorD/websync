@@ -1,14 +1,14 @@
 from app import app
 from models import Blob
 from flask import request, url_for
-import os, requests, json
+import os, requests, json, logging
 from pprint import pprint
 from subprocess import call
-from tornado.ioloop import IOLoop
 
 nodelist = []
 
-def add_node(port):
+def add_node():
+   port = app.config['NODE_PORT']
    masterURL = app.config['MASTER_URL']
    pprint('Registering node at port ' + port + ' with master at ' + masterURL)
    try:
@@ -21,17 +21,13 @@ def add_node(port):
       id = "-1"
 
    app.config['NODE_ID']   = id
-   app.config['NODE_PORT'] = port
-   pprint("Node created with id:" + id + ", at port:" + port)
+   pprint("Node created with id:" + id + ", at port:" + str(port))
 
 def get_registration_id(r):
       id = r.json().get('Node')
       if not isinstance(id, int):
          raise ValueError
       return str(id)
-
-def shut_down_everything():
-   raise KeyboardInterrupt
 
 def remove_node():
    masterURL = app.config['MASTER_URL']
@@ -78,16 +74,21 @@ def master_update_nodes():
 # This methods handles communication between nodes
 # PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
 def network_sync(method, fileID, node):
+   logging.info("Querying file with ID: " + str(fileID))
    f = Blob.query.get(fileID)
    if f:
-      url   = node+'/blob/'
-      files = {'timestamp':(f.last_sync, ''), 'file':(f.filename, f.item)}
-      if method == 'POST':        
-         requests.post(url, files=files)
-      elif method == 'PUT':
-         requests.put(url + str(fileID) + '/', files=files)
-      elif method == 'DELETE':
-         requests.delete(url + str(fileID) + '/')
+      method = method.upper()
+      url    = node + 'blob/'
+      logging.info("File found! Sending to " + url)
+      requests.get(url)
+      #files = {'file':(f.filename, f.item)}
+      #if method == 'POST':        
+      #   requests.post(url, files=files)
+      #elif method == 'PUT':
+      #   logging.info("Sending PUT request to " + url)
+      #   requests.put(url + str(fileID) + '/', files=files)
+      #elif method == 'DELETE':
+      #   requests.delete(url + str(fileID) + '/')
 
 # Method used to inform masternode about changes in files
 def master_update_file(method, fileID, timestamp):
