@@ -78,17 +78,17 @@ def network_sync(method, fileID, node):
    f = Blob.query.get(fileID)
    if f:
       method = method.upper()
-      url    = node + 'blob/'
+      url    = node + '/blob/'
       logging.info("File found! Sending to " + url)
-      requests.get(url)
-      #files = {'file':(f.filename, f.item)}
-      #if method == 'POST':        
-      #   requests.post(url, files=files)
-      #elif method == 'PUT':
-      #   logging.info("Sending PUT request to " + url)
-      #   requests.put(url + str(fileID) + '/', files=files)
-      #elif method == 'DELETE':
-      #   requests.delete(url + str(fileID) + '/')
+
+      files = {'file':(f.filename, f.item)}
+      if method == 'POST':        
+         requests.post(url, files=files)
+      elif method == 'PUT':
+         logging.info("Sending PUT request to " + url)
+         requests.put(url + str(fileID) + '/', files=files)
+      elif method == 'DELETE':
+         requests.delete(url + str(fileID) + '/')
 
 # Method used to inform masternode about changes in files
 def master_update_file(method, fileID, timestamp):
