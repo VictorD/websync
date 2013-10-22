@@ -2,7 +2,13 @@
 	<h3>Files on this node:</h3>
 {% for file in files %}
 	<div class="file col-xs-5" id="file-{{file.id}}">
+     <a href="{{download_url}}{{file.id}}">
+     {% if (file.is_image) %} 
+     <img class="icon" src="{{download_url}}{{file.id}}"/>
+     {% else %}
 	  <img class="icon" src="{{ file.extension }}">
+     {% endif %}
+     </a>
 	  <div class="name">
 		  {{ file.filename }}
 	  </div>
@@ -10,7 +16,7 @@
 		  {{ file.size }}
 	  </div>
 	  <div class="details">
-		  <h3><a href="{{download_url}}{{file.id}}">download</a> | <a href="#" id="delete-{{file.id}}">delete</a> | status</h3>
+		  <h3><a href="{{download_url}}{{file.id}}">download</a> | <a href="#" id="delete-{{file.id}}">delete</a> | {{file.global_id}}</h3>
 		  <p>uploaded: {{ file.created_at }}</p>
 		  <p>last sync: {{ file.last_sync }}</p>
 	  </div>

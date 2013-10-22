@@ -88,6 +88,10 @@ body {
    color: #fff;
 }
 
+.details a:hover {
+	color: #2c2;
+}
+
 .clearfix {
 	clear:both;
 	line-height: 0pt;
@@ -103,3 +107,4 @@ body {
 .menu li a {
 	color: #fff;
 }
+

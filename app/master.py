@@ -56,10 +56,7 @@ def update_nodes():
       try:
          r = requests.get(URL, timeout=30)
          r_json = convert(r.json())
-         NODE_LIST = []
-         for i in r_json['Nodes']:
-            if not i.get('ipaddr') == NODE_URL:
-               NODE_LIST.append(i)
+         NODE_LIST = r_json['Nodes']
          logging.info("Updated Node list. Found " + str(len(NODE_LIST)) + " nodes")
       except (requests.Timeout, requests.ConnectionError):
          logging.error("Failed to retrieve Node list from Master Node")

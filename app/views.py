@@ -45,6 +45,7 @@ def get_all_blobs():
    for b in bl:
       b.filename = b.file_name()
       b.size = b.file_size()
+      b.is_image = (b.extension == 'image/jpeg' or b.extension == 'image/png')
       b.extension = b.icon_img()
    return render_template("filedisplay.html",
       files = bl,
