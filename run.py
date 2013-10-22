@@ -3,32 +3,37 @@
 
 from app import app, db
 import os, requests, json, logging
-import server
-import app.utils as utils
-from werkzeug.debug import DebuggedApplication
+import server, master
+
+def initLogger():
+   # Log to console and websync.log
+   logging.basicConfig(
+      format='%(asctime)s %(message)s', 
+      datefmt='%Y-%m-%d %H:%M:%S: ', 
+      filename='websync.log', 
+      level=logging.INFO)
+
+   console = logging.StreamHandler()
+   console.setLevel(logging.INFO)
+   logging.getLogger().addHandler(console)
 
 if __name__ == '__main__':
-   app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
-   
-   app.config['MASTER_URL'] = 'http://46.162.89.26:5000/' # API access point for MasterNode
-   app.config['BASEDIR']    = os.path.abspath(os.path.dirname(__file__))
+   initLogger()
    import sys 
    portint=int(sys.argv[-1])
    portstr=str(sys.argv[-1])
    if isinstance(portint, int) and portint < 65535:
-      app.config['NODE_PORT'] = portstr
+      app.config['MASTER_URL'] = 'http://46.162.89.26:5000/' # API access point for MasterNode
+      app.config['NODE_PORT']  = portstr
+      app.config['BASE_DIR']   = os.path.abspath(os.path.dirname(__file__))
       
       # Create database
       db.create_all()
 
-      # Register Node with MasterNode
-      utils.add_node()
-
-      # Start the app in Tornado
+      master.register()
       server.start(app, portint)
-      #app.run(host='0.0.0.0', use_reloader=False, port=portint, debug=True)
+      master.unregister()
       
-      # Unregister
-      utils.remove_node()
-
+      # Remove database when server shuts down    
+      os.remove(os.path.join(app.config['BASE_DIR'], (portstr + '.db')))
       logging.info('Exited successfully')

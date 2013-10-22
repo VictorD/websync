@@ -68,12 +68,13 @@ class Blob(db.Model):
       return i
 
    def file_size(self):
-      if self.size > 1000000:
-         return "%s MB" % (self.size/1000000)
-      elif self.size > 1000:
-         return "%s KB" % (self.size/1000)
-      else:
-         return "%s B" % (self.size)
+      return self.global_id
+      #if self.size > 1000000:
+      #   return "%s MB" % (self.size/1000000)
+      #elif self.size > 1000:
+      #   return "%s KB" % (self.size/1000)
+      #else:
+      #   return "%s B" % (self.size)
 
    def file_name(self):
       return str(self.filename.rsplit(".",1)[0])

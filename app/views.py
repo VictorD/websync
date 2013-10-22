@@ -5,7 +5,7 @@ import datetime, requests, json, logging
 from pprint import pprint
 from utils import master_update_nodes, master_update_file, convert, string_to_timestamp, network_sync
 from subprocess import Popen
-import server
+import server, master
 
 # Register Node with MasterNode
 @app.before_first_request
@@ -15,17 +15,29 @@ def initialize():
 @app.route('/', methods = ['GET'])
 def index():
 	return render_template("index.html")
+
+@app.route('/logs/')   
+@app.route('/logs/<int:max>')
+def logtext(max=50):
+   log_dir = app.config['BASE_DIR'] 
+   file = open(log_dir + "/websync.log", 'r')
+   log_lines = [line for line in file.readlines()]
+   if max > 0:
+      log_lines = log_lines[-max:]
+   return render_template("log.html",
+      lines = reversed(log_lines))
 	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
    masterURL = app.config['MASTER_URL']
    nodes = []
-   try:
-      r = requests.get(masterURL, timeout=2)
-      r_json = convert(r.json())
-      nodes = r_json['Nodes']
-   except (requests.Timeout, requests.ConnectionError):
-      pass
+   if master.is_online():
+      try:
+         r = requests.get(masterURL, timeout=30)
+         r_json = convert(r.json())
+         nodes = r_json['Nodes']
+      except (requests.Timeout, requests.ConnectionError):
+         pass
 
    return render_template("dashboard.html",
       thisURL   = url_for('index', _external=True),
@@ -51,28 +63,11 @@ def get_all_blobs():
       download_url = path
    )
 
-#@app.route('/getFile/<int:id>/<targetPort>/', methods = ['GET'])
-#def dummyPut(id,targetPort):
-#   nodeURL    = url_for('index', _external=True)
-#   targetURL = nodeURL[:-5] + str(targetPort) + '/'
-#   headers={'content-type': 'application/json'}
-#   
-#   thisPort = app.config['NODE_PORT']
-#   data = json.dumps({
-#      'nodeurl': nodeURL, 
-#      'fileid': str(id), 
-#      'method': 'post'
-#   })
-#   pprint("Sending GET request to " + targetURL + "mn/")
-#   requests.get(targetURL + 'mn/', data=data, headers=headers, timeout=10)
-#   return "PUT file " + str(id) + " to " + targetURL
-
-   
 @app.route('/blob/',          methods = ['POST', 'PUT'])
 @app.route('/blob/<int:id>/', methods = ['POST', 'PUT'])
 def update_blob(id=None, json=0):
    logging.info("Received BLOB Update")
-   b = None
+   b  = None
    rb = blob_from_request(request)
    method = 'post'
    if id and int(id) > 0:
@@ -91,6 +86,7 @@ def update_blob(id=None, json=0):
       b = rb
       b.global_id = get_next_global_id()
       db.session.add(b)
+      logging.info("Added new Blob with id: " + str(b.global_id))
       
    db.session.commit()      
    master_update_file(method, b.global_id, b.last_sync)
@@ -102,7 +98,6 @@ def update_blob(id=None, json=0):
 
 def blob_from_request(r):
    ts = datetime.datetime.utcnow()
-   pprint (r.form)
    if r.form and r.form['timestamp']:
       ts = string_to_timestamp(r.form['timestamp'])
 
@@ -114,13 +109,14 @@ def blob_from_request(r):
 def get_next_global_id():
    masterURL = app.config['MASTER_URL']
    gid = 0
-   try:
-      r = requests.get(masterURL + "next/", timeout=2)
-      r_json = convert(r.json())
-      gid = int(r_json['nextID'])
-   except (requests.ConnectionError, requests.Timeout):
-      pass
-
+   if master.is_online():   
+      try:
+         r = requests.get(masterURL + "next/", timeout=30)
+         r_json = convert(r.json())
+         gid = int(r_json['nextID'])
+         logging.info('Global id received: ' + str(gid))
+      except (requests.Timeout, requests.ConnectionError):
+         logging.error('Global ID request timeout. Using default value')
    return gid
 
 @app.route('/blob/<int:id>/', methods = ['GET'])

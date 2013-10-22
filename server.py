@@ -1,4 +1,3 @@
-#import master
 import tornado.ioloop
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
@@ -7,9 +6,10 @@ import signal, logging
 
 is_closing = False
        
-def start(app, port=5000):   
+def start(app, port=5000):
+   logging.info("Starting Tornado Server...")
    tornado.options.parse_command_line()
-   http_server = HTTPServer(WSGIContainer(app))      
+   http_server = HTTPServer(WSGIContainer(app))
    http_server.listen(port)
    signal.signal(signal.SIGINT, signal_handler)
    tornado.ioloop.PeriodicCallback(try_exit, 100).start()
@@ -27,4 +27,3 @@ def signal_handler(signum, frame):
 def stop():
    global is_closing
    is_closing = True
-   
