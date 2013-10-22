@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from app import app, db
-import os, requests, json, logging
-import server, master
+import os, logging, server
+from app import app, db, master
 
 def initLogger():
    # Log to console and websync.log
@@ -23,17 +22,18 @@ if __name__ == '__main__':
    portint=int(sys.argv[-1])
    portstr=str(sys.argv[-1])
    if isinstance(portint, int) and portint < 65535:
-      app.config['MASTER_URL'] = 'http://46.162.89.26:5000/' # API access point for MasterNode
-      app.config['NODE_PORT']  = portstr
       app.config['BASE_DIR']   = os.path.abspath(os.path.dirname(__file__))
       
+      # API access point for MasterNode
+      master.register('http://46.162.89.26:5000/', portstr)
+
       # Create database
       db.create_all()
 
-      master.register()
       server.start(app, portint)
-      master.unregister()
       
       # Remove database when server shuts down    
       os.remove(os.path.join(app.config['BASE_DIR'], (portstr + '.db')))
+      
+      master.unregister()      
       logging.info('Exited successfully')

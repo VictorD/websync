@@ -1,16 +1,14 @@
+import requests, json, logging, server, master
 from flask import Flask, jsonify, request, abort, make_response, render_template, url_for, redirect
 from models import *
 from app import db, app
-import datetime, requests, json, logging
-from pprint import pprint
-from utils import master_update_nodes, master_update_file, convert, string_to_timestamp, network_sync
+from utils import convert, string_to_timestamp, network_sync, current_time
 from subprocess import Popen
-import server, master
 
 # Register Node with MasterNode
 @app.before_first_request
 def initialize():
-   master_update_nodes()
+   master.update_nodes()
 
 @app.route('/', methods = ['GET'])
 def index():
@@ -22,18 +20,15 @@ def logtext(max=50):
    log_dir = app.config['BASE_DIR'] 
    file = open(log_dir + "/websync.log", 'r')
    log_lines = [line for line in file.readlines()]
-   if max > 0:
-      log_lines = log_lines[-max:]
-   return render_template("log.html",
-      lines = reversed(log_lines))
+   log_lines = log_lines[-max:] # truncate to <max> lines
+   return render_template("log.html", lines = reversed(log_lines)) # show newest first
 	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
-   masterURL = app.config['MASTER_URL']
    nodes = []
    if master.is_online():
       try:
-         r = requests.get(masterURL, timeout=30)
+         r = requests.get(master.URL, timeout=30)
          r_json = convert(r.json())
          nodes = r_json['Nodes']
       except (requests.Timeout, requests.ConnectionError):
@@ -41,7 +36,7 @@ def dashboard():
 
    return render_template("dashboard.html",
       thisURL   = url_for('index', _external=True),
-      masterURL = masterURL,
+      masterURL = master.URL,
       nodeList  = nodes)
    
 @app.route('/selfdestruct', methods=['GET'])
@@ -89,7 +84,7 @@ def update_blob(id=None, json=0):
       logging.info("Added new Blob with id: " + str(b.global_id))
       
    db.session.commit()      
-   master_update_file(method, b.global_id, b.last_sync)
+   master.update_file(method, b.global_id, b.last_sync)
 
    if json:
       return jsonify ( { 'Blob': b.id } ), 200
@@ -97,7 +92,7 @@ def update_blob(id=None, json=0):
       return redirect (url_for('index'))
 
 def blob_from_request(r):
-   ts = datetime.datetime.utcnow()
+   ts = current_time()
    if r.form and r.form['timestamp']:
       ts = string_to_timestamp(r.form['timestamp'])
 
@@ -107,11 +102,10 @@ def blob_from_request(r):
         size=len(fr), created_at = ts, last_sync = ts)
         
 def get_next_global_id():
-   masterURL = app.config['MASTER_URL']
    gid = 0
    if master.is_online():   
       try:
-         r = requests.get(masterURL + "next/", timeout=30)
+         r = requests.get(master.URL + "next/", timeout=30)
          r_json = convert(r.json())
          gid = int(r_json['nextID'])
          logging.info('Global id received: ' + str(gid))
@@ -132,12 +126,12 @@ def delete_blob(id):
    b = Blob.query.get(id)
    db.session.delete(b)
    db.session.commit()
-   master_update_file('delete', b.global_id, b.last_sync)
+   master.update_file('delete', b.global_id, b.last_sync)
    return jsonify ( {'Deleted blob':id} ), 200
 
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
-def masterOrders():
+def master_orders():
    logging.info("Received MN request")
    if request.json and 'nodeurl' in request.json and 'method' in request.json and 'fileid' in request.json:
       n = request.json['nodeurl']
@@ -153,6 +147,6 @@ def masterOrders():
 def create_local_node():
    port = request.form['port']
    Popen(["python", "run.py", port])
-   master_update_nodes()
+   master.update_nodes()
    return redirect (url_for('index') + "#!/dashboard")
 
