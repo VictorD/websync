@@ -102,11 +102,11 @@ def update_blob(id=None, json=0):
 
 def blob_from_request(r):
    ts = datetime.datetime.utcnow()
-   pprint (r)
-   if r.form['timestamp']:
+   pprint (r.form)
+   if r.form and r.form['timestamp']:
       ts = string_to_timestamp(r.form['timestamp'])
 
-   f  = request.files['file']
+   f  = r.files['file']
    fr = f.read()
    return Blob(item=fr, filename=f.filename, extension=f.content_type, 
         size=len(fr), created_at = ts, last_sync = ts)

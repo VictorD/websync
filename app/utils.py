@@ -80,10 +80,12 @@ def network_sync(method, fileID, node):
       method = method.upper()
       url    = node + '/blob/'
       logging.info("File found! Sending to " + url)
-      data = {'timestamp': f.last_sync }
-      files = {'file':(f.filename, f.item)}
+      
+      file = {'file':(f.filename, f.item)}
+      values = {'timestamp': str(f.last_sync) }
+      
       if method == 'POST':        
-         requests.post(url, files=files, data=data)
+         r = requests.post(url, files=file, data=values)
       elif method == 'PUT':
          logging.info("Sending PUT request to " + url)
          requests.put(url + str(fileID) + '/', files=files, data=data)
