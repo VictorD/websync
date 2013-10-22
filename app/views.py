@@ -8,6 +8,8 @@ from subprocess import Popen
 # Register Node with MasterNode
 @app.before_first_request
 def initialize():
+   url = url_for('index', _external=True)
+   master.set_node_url(url)
    master.update_nodes()
 
 @app.route('/', methods = ['GET'])
@@ -25,19 +27,10 @@ def logtext(max=50):
 	
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
-   nodes = []
-   if master.is_online():
-      try:
-         r = requests.get(master.URL, timeout=30)
-         r_json = convert(r.json())
-         nodes = r_json['Nodes']
-      except (requests.Timeout, requests.ConnectionError):
-         pass
-
    return render_template("dashboard.html",
-      thisURL   = url_for('index', _external=True),
-      masterURL = master.URL,
-      nodeList  = nodes)
+      thisURL    = url_for('index', _external=True),
+      masterURL  = master.URL,
+      node_list  = master.get_nodes())
    
 @app.route('/selfdestruct', methods=['GET'])
 def shutdown():

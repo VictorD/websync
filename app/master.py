@@ -1,12 +1,16 @@
-from flask import url_for
 from utils import JSON_HEADER, timestamp_to_string, convert
 import requests, json, logging
 
 OFFLINE_MODE = False
 URL = ""
 NODE_ID = "0"
+NODE_URL = ""
 NODE_PORT = "0"
 NODE_LIST = []
+
+def set_node_url(nu):
+   global NODE_URL
+   NODE_URL = nu
 
 def register(url, port):
    global URL, NODE_ID, OFFLINE_MODE, NODE_PORT
@@ -37,18 +41,28 @@ def unregister():
       
 def is_online():
    return (not OFFLINE_MODE)
-   
+
+def get_nodes():
+   if is_online():
+      logging.info("Updating node list")
+      update_nodes()
+   logging.info(NODE_LIST)
+   return NODE_LIST
+
 # Fix the list of nodes in network(excluding self)
 def update_nodes():
+   global NODE_LIST
    if is_online():
-      r = requests.get(URL)
-      r_json = convert(r.json())
-      global NODE_LIST
-      NODE_LIST = []
-      nodeIP = url_for('index', _external=True)      
-      for i in r_json['Nodes']:
-         if not i.get('ipaddr') == nodeIP:
-            NODE_LIST.append(i.get('ipaddr'))
+      try:
+         r = requests.get(URL, timeout=30)
+         r_json = convert(r.json())
+         NODE_LIST = []
+         for i in r_json['Nodes']:
+            if not i.get('ipaddr') == NODE_URL:
+               NODE_LIST.append(i)
+         logging.info("Updated Node list. Found " + str(len(NODE_LIST)) + " nodes")
+      except (requests.Timeout, requests.ConnectionError):
+         logging.error("Failed to retrieve Node list from Master Node")
 
 # Method used to inform MasterNode about changes in files
 def update_file(method, fileID, timestamp):

@@ -25,7 +25,7 @@ def network_sync(method, fileID, node):
    f = Blob.query.get(fileID)
    if f:
       method = method.upper()
-      url    = node + '/blob/'
+      url    = node + 'blob/'
       logging.info("File found! Sending to " + url)
       
       file = {'file':(f.filename, f.item)}

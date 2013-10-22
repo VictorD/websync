@@ -1,6 +1,6 @@
 <div class="row">
    <div class="col-xs-12">
-   {% if nodeList %}
+   {% if node_list %}
       <table class="table">
          <thead>
             <tr>
@@ -11,7 +11,7 @@
             </tr>
          </thead>
          <tbody>
-            {% for node in nodeList %}
+            {% for node in node_list %}
             <tr {% if (node.ipaddr == thisURL) %} class="thisNode" {% endif %} >
                <td><a class="ip" href="{{ node.ipaddr }}">{{ node.ipaddr }}</a></td>
                <td><span class="online-{{ node.status }}">{{ node.status }}</span></td>
