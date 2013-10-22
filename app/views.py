@@ -100,10 +100,12 @@ def update_blob(id=None, json=0):
    else:
       return redirect (url_for('index'))
 
-def blob_from_request(request):
+def blob_from_request(r):
    ts = datetime.datetime.utcnow()
-   #if request.files['timestamp']:
-   #ts = string_to_timestamp(request.files['timestamp'])
+   pprint (r)
+   if r.form['timestamp']:
+      ts = string_to_timestamp(r.form['timestamp'])
+
    f  = request.files['file']
    fr = f.read()
    return Blob(item=fr, filename=f.filename, extension=f.content_type, 
