@@ -134,14 +134,16 @@ def download_blob(id):
 
 @app.route('/blob/<int:id>/', methods = ['DELETE'])
 def delete_blob(id):
-   if request.json and request.json['global_id']:
-      b = Blob.query.filter_by(global_id = request.form['global_id']).first()
+   if request.json and request.json['global_id'].first():
+      b = Blob.query.filter_by(global_id = request.json['global_id']).first()
    else:
       b = Blob.query.get(id)
       
    db.session.delete(b)
    db.session.commit()
-   master.update_file('delete', b.global_id, b.last_sync)
+   master.update_file('delete', b.global_id, b.last_sync)   
+   logging.info('Informing MasterServer DELETE: ' + str(b.global_id))
+   
    return jsonify ( {'Deleted blob':id} ), 200
 
 # MasterNodes API endpoint
