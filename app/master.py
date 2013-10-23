@@ -1,7 +1,7 @@
 from utils import JSON_HEADER, timestamp_to_string, convert
 import requests, json, logging
 
-OFFLINE_MODE = False
+OFFLINE_MODE = True
 URL = ""
 NODE_ID = "0"
 NODE_URL = ""
