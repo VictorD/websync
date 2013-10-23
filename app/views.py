@@ -73,8 +73,9 @@ def update_blob(id=None, json=0):
          b.filename  = rb.filename
          b.extension = rb.extension
          b.size      = len(rb.item)
-         b.global_id = rb.global_id
          b.last_sync = rb.last_sync
+         if rb.global_id:
+            b.global_id = rb.global_id
 
    if not id or not b:
       # add new blob
@@ -94,6 +95,7 @@ def blob_from_request(r):
    ts = current_time()
    rb = Blob(item=fr, filename=f.filename, extension=f.content_type, 
              size=len(fr), created_at = ts, last_sync = ts)
+   logging.info(r.form)
    if r.form:
       if r.form['timestamp']:
          rb.last_sync = string_to_timestamp(r.form['timestamp'])
