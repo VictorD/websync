@@ -18,6 +18,11 @@ def register(url, port):
    NODE_PORT = port
    register_node()
    
+def reconnect_node():
+   register_node()
+   return is_online()
+      
+   
 def register_node():
    global OFFLINE_MODE, NODE_ID
    if OFFLINE_MODE:

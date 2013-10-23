@@ -20,12 +20,23 @@ def index():
 def offlineMode(off):
    master.set_offline_mode(off)
    return jsonify ( { 'OfflineMode': not master.is_online() } ), 200
-   
+
 @app.route('/reconnect/')
 def reconnect():
    master.register_node()
+   if master.is_online():
+      # tell master of changes that happened while offline
+      update_all_files()         
    return jsonify ( { 'Online': master.is_online() } ), 200
 
+def update_all_files():
+   bl = Blob.query.all()
+   for b in bl:
+      if b.global_id == None:
+         b.global_id = get_next_global_id()
+      master.update_file('post', b.global_id, b.last_sync)
+   db.session.commit()
+   
 @app.route('/logs/')   
 @app.route('/logs/<int:max>')
 def logtext(max=50):
@@ -70,7 +81,7 @@ def update_blob(id=None):
    rb = blob_from_request(request)
 
    b  = None
-   if rb.global_id:
+   if rb.global_id != None:
       b = Blob.query.filter_by(global_id = rb.global_id).first()
    elif id:
       b = Blob.query.get(id)
@@ -90,7 +101,7 @@ def update_blob(id=None):
       db.session.add(b)
       logging.info("Added new Blob with id: " + str(b.global_id))
    
-   if not b.global_id:
+   if b.global_id == None:
          b.global_id = get_next_global_id()
 
    db.session.commit()      
@@ -106,9 +117,9 @@ def blob_from_request(r):
              size=len(fr), created_at = ts, last_sync = ts)
    logging.info(r.form)
    if r.form:
-      if r.form['timestamp']:
+      if 'timestamp' in r.form:
          rb.last_sync = string_to_timestamp(r.form['timestamp'])
-      if r.form['global_id']:
+      if 'global_id' in r.form:
          rb.global_id = r.form['global_id']
    return rb
         
@@ -136,7 +147,7 @@ def download_blob(id):
 def delete_blob(id):
    if request.json:
       logging.info(request.json)
-      if request.json['global_id']:
+      if 'global_id' in request.json:
          b = Blob.query.filter_by(global_id = int(request.json['global_id'])).first()
    else:
       b = Blob.query.get(id)
@@ -144,7 +155,6 @@ def delete_blob(id):
    if b:
       master.update_file('delete', b.global_id, b.last_sync)      
       logging.info('Informing MasterServer DELETE: ' + str(b.global_id))
-      
       db.session.delete(b)
       db.session.commit()
       return jsonify ( {'Deleted blob':id} ), 200
