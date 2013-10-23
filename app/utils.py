@@ -20,16 +20,16 @@ def convert(input):
 
 # This methods handles communication between nodes
 # PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
-def network_sync(method, fileID, node):
-   logging.info("Querying file with ID: " + str(fileID))
-   f = Blob.query.get(fileID)
+def network_sync(method, gid, node):
+   logging.info("Locating file with global_id: " + str(gid))
+   method = method.upper()
+   f = Blob.query.filter_by(global_id=gid).first()
    if f:
-      method = method.upper()
-      url    = node + 'blob/'
+      url = node + 'blob/'
       logging.info("File found! Sending to " + url)
       
       file = {'file':(f.filename, f.item)}
-      values = {'timestamp': str(f.last_sync) }
+      values = {'timestamp': str(f.last_sync), 'global_id': gid }
       
       if method == 'POST':        
          requests.post(url, files=file, data=values)

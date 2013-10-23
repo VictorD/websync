@@ -73,6 +73,7 @@ def update_blob(id=None, json=0):
          b.filename  = rb.filename
          b.extension = rb.extension
          b.size      = len(rb.item)
+         b.global_id = rb.global_id
          b.last_sync = rb.last_sync
 
    if not id or not b:
@@ -88,14 +89,16 @@ def update_blob(id=None, json=0):
    return jsonify ( { 'Blob': b.id } ), 200
 
 def blob_from_request(r):
-   ts = current_time()
-   if r.form and r.form['timestamp']:
-      ts = string_to_timestamp(r.form['timestamp'])
-
    f  = r.files['file']
    fr = f.read()
-   return Blob(item=fr, filename=f.filename, extension=f.content_type, 
-        size=len(fr), created_at = ts, last_sync = ts)
+   rb = Blob(item=fr, filename=f.filename, extension=f.content_type, 
+             size=len(fr), created_at = ts, last_sync = current_time())
+   if r.form:
+      if r.form['timestamp']:
+         rb.last_sync = string_to_timestamp(r.form['timestamp'])
+      if r.form['global_id']:
+         rb.global_id = r.form['global_id']
+   return rb
         
 def get_next_global_id():
    gid = 0
