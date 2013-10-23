@@ -91,8 +91,9 @@ def update_blob(id=None, json=0):
 def blob_from_request(r):
    f  = r.files['file']
    fr = f.read()
+   ts = current_time()
    rb = Blob(item=fr, filename=f.filename, extension=f.content_type, 
-             size=len(fr), created_at = ts, last_sync = current_time())
+             size=len(fr), created_at = ts, last_sync = ts)
    if r.form:
       if r.form['timestamp']:
          rb.last_sync = string_to_timestamp(r.form['timestamp'])
