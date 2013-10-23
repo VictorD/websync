@@ -71,7 +71,7 @@ def update_blob(id=None):
 
    b  = None
    if rb.global_id:
-      b = Blob.query.filter_by(global_id=rb.global_id).first()
+      b = Blob.query.filter_by(global_id == rb.global_id).first()
    elif id:
       b = Blob.query.get(id)
 
@@ -135,17 +135,18 @@ def download_blob(id):
 @app.route('/blob/<int:id>/', methods = ['DELETE'])
 def delete_blob(id):
    if request.json and request.json['global_id']:
-      b = Blob.query.filter_by(global_id = request.json['global_id']).first()
+      b = Blob.query.filter_by(global_id == int(request.json['global_id'])).first()
    else:
       b = Blob.query.get(id)
-      
-   db.session.delete(b)
-   db.session.commit()
-   master.update_file('delete', b.global_id, b.last_sync)   
-   logging.info('Informing MasterServer DELETE: ' + str(b.global_id))
    
-   return jsonify ( {'Deleted blob':id} ), 200
-
+   if b:
+      master.update_file('delete', b.global_id, b.last_sync)      
+      logging.info('Informing MasterServer DELETE: ' + str(b.global_id))
+      
+      db.session.delete(b)
+      db.session.commit()
+      return jsonify ( {'Deleted blob':id} ), 200
+   return jsonify( {'No blob found with id': id}), 200
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
 def master_orders():
