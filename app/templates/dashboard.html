@@ -29,6 +29,12 @@
       <p>ERROR: Can't reach MasterServer at <a href="{{masterURL}}">{{masterURL}}</a></p>
       <p>This node is in Offline Mode</p>
       <p>
+         <a href="{{ thisURL }}reconnect" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-retweet"></span>
+            Retry MasterNode registration
+         </a>
+      </p>
+      <p>
          <a href="{{ thisURL }}selfdestruct" class="btn btn-danger btn-sm">
             <span class="glyphicon glyphicon-ban-circle"></span>
             Tell node to Self Destruct

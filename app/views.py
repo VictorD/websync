@@ -12,9 +12,14 @@ def initialize():
    master.set_node_url(url)
    master.update_nodes()
 
-@app.route('/', methods = ['GET'])
+@app.route('/')
 def index():
 	return render_template("index.html")
+   
+@app.route('/reconnect/')
+def reconnect():
+   master.register_node()
+   return jsonify ( { 'Online': master.is_online() } ), 200
 
 @app.route('/logs/')   
 @app.route('/logs/<int:max>')
@@ -80,10 +85,7 @@ def update_blob(id=None, json=0):
    db.session.commit()      
    master.update_file(method, b.global_id, b.last_sync)
 
-   if json:
-      return jsonify ( { 'Blob': b.id } ), 200
-   else:
-      return redirect (url_for('index'))
+   return jsonify ( { 'Blob': b.id } ), 200
 
 def blob_from_request(r):
    ts = current_time()

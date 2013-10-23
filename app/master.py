@@ -13,17 +13,22 @@ def set_node_url(nu):
    NODE_URL = nu
 
 def register(url, port):
-   global URL, NODE_ID, OFFLINE_MODE, NODE_PORT
+   global URL, NODE_PORT
    URL = url
    NODE_PORT = port
-   logging.info('Registering node at port ' + port + ' with master at ' + url)
-   try:
-      NODE_ID = request_node_id(url, port)
-      logging.info("Node received ID: " + NODE_ID)
-   except (ValueError, requests.ConnectionError, requests.Timeout):
-      OFFLINE_MODE = True
-      logging.error('ERROR: Registration failed. Node running in offline mode!')
-   return NODE_ID
+   register_node()
+   
+def register_node():
+   global OFFLINE_MODE, NODE_ID
+   if OFFLINE_MODE:
+      logging.info('Registering node at port ' + NODE_PORT + ' with master at ' + URL)
+      try:
+         NODE_ID = request_node_id(URL, NODE_PORT)
+         logging.info("Node received ID: " + NODE_ID)
+         OFFLINE_MODE = False
+      except (ValueError, requests.ConnectionError, requests.Timeout):
+         OFFLINE_MODE = True
+         logging.error('ERROR: Registration failed. Node running in offline mode!')
       
 def request_node_id(url, port):
       data = json.dumps({'port': port})

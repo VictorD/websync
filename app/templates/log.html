@@ -1,6 +1,16 @@
 <div class="row">
-	<h3>Recent log messages:</h3>
-   {% for line in lines %}
-   <p>{{line}}</p>
-   {% endfor %}
+   <div class="title col-sm-11">
+      <h3><span class="glyphicon glyphicon-book"></span> Recent log messages</h3>
+   </div>
+   <div class="col-sm-11" style="margin-top: 20px">
+   <table>
+      <tbody>
+         {% for line in lines %}      
+         <tr>
+            <td><p>{{line}}</p></td>
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
+   </div>
 </div>
