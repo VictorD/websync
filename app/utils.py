@@ -34,9 +34,9 @@ def network_sync(method, gid, node):
       if method == 'POST':        
          requests.post(url, files=file, data=values)
       elif method == 'PUT':
-         requests.put(url + str(fileID) + '/', files=file, data=values)
+         requests.put(url + str(gid) + '/', files=file, data=values)
       elif method == 'DELETE':
-         requests.delete(url + str(fileID) + '/')
+         requests.delete(url + str(gid) + '/')
 
 def timestamp_to_string(timestamp):
    return timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')

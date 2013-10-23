@@ -43,7 +43,11 @@ def unregister():
    if is_online():
       logging.info("Unregistering from master server")
       requests.delete(URL + NODE_ID + ('/'), headers=JSON_HEADER)
-      
+
+def set_offline_mode(offline):
+   global OFFLINE_MODE
+   OFFLINE_MODE = offline
+   
 def is_online():
    return (not OFFLINE_MODE)
 

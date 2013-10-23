@@ -16,6 +16,11 @@ def initialize():
 def index():
 	return render_template("index.html")
    
+@app.route('/offlineMode/<int:off>')
+def offlineMode(off):
+   master.set_offline_mode(off)
+   return jsonify ( { 'OfflineMode': not master.is_online() } ), 200
+   
 @app.route('/reconnect/')
 def reconnect():
    master.register_node()
@@ -33,9 +38,10 @@ def logtext(max=50):
 @app.route('/dashboard/', methods = ['GET'])
 def dashboard():
    return render_template("dashboard.html",
-      thisURL    = url_for('index', _external=True),
-      masterURL  = master.URL,
-      node_list  = master.get_nodes())
+      thisURL     = url_for('index', _external=True),
+      masterURL   = master.URL,
+      node_list   = master.get_nodes(),
+      node_online = master.is_online())
    
 @app.route('/selfdestruct', methods=['GET'])
 def shutdown():
@@ -128,7 +134,11 @@ def download_blob(id):
 
 @app.route('/blob/<int:id>/', methods = ['DELETE'])
 def delete_blob(id):
-   b = Blob.query.get(id)
+   if r.form and r.form['global_id']:
+      b = Blob.query.filter_by(global_id = r.form['global_id']).first()
+   else:
+      b = Blob.query.get(id)
+      
    db.session.delete(b)
    db.session.commit()
    master.update_file('delete', b.global_id, b.last_sync)
