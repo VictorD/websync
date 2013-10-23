@@ -134,8 +134,8 @@ def download_blob(id):
 
 @app.route('/blob/<int:id>/', methods = ['DELETE'])
 def delete_blob(id):
-   if r.form and r.form['global_id']:
-      b = Blob.query.filter_by(global_id = r.form['global_id']).first()
+   if request.form and request.form['global_id']:
+      b = Blob.query.filter_by(global_id = request.form['global_id']).first()
    else:
       b = Blob.query.get(id)
       
