@@ -67,9 +67,9 @@ def update_nodes():
          logging.error("Failed to retrieve Node list from Master Node")
 
 # Method used to inform MasterNode about changes in files
-def update_file(method, fileID, timestamp):
+def update_file(method, gid, timestamp):
    if is_online():
-      logging.info("Informing MasterServer of File update: " + str(fileID))
+      logging.info("Informing MasterServer of File update: " + str(gid))
       ts = timestamp_to_string(timestamp)
-      js = {'timestamp': ts, 'fileid': fileID, 'port': NODE_PORT}
+      js = {'timestamp': ts, 'fileid': gid, 'port': NODE_PORT}
       requests.post(URL + method + '/', data=json.dumps(js), headers=JSON_HEADER)

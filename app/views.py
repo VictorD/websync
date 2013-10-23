@@ -59,31 +59,34 @@ def get_all_blobs():
 
 @app.route('/blob/',          methods = ['POST', 'PUT'])
 @app.route('/blob/<int:id>/', methods = ['POST', 'PUT'])
-def update_blob(id=None, json=0):
+def update_blob(id=None):
    logging.info("Received BLOB Update")
-   b  = None
    rb = blob_from_request(request)
-   method = 'post'
-   if id and int(id) > 0:
-      b = Blob.query.get(id)
-      if b:
-         # update existing blob
-         method = 'put'
-         b.item      = rb.item
-         b.filename  = rb.filename
-         b.extension = rb.extension
-         b.size      = len(rb.item)
-         b.last_sync = rb.last_sync
-         if rb.global_id:
-            b.global_id = rb.global_id
 
-   if not id or not b:
+   b  = None
+   if rb.global_id:
+      b = Blob.query.filter_by(global_id=rb.global_id).first()
+   elif id:
+      b = Blob.query.get(id)
+
+   method = 'post'
+   if b:
+      # update an existing blob
+      method = 'put'
+      b.item      = rb.item
+      b.filename  = rb.filename
+      b.extension = rb.extension
+      b.size      = len(rb.item)
+      b.last_sync = rb.last_sync
+   else:
       # add new blob
       b = rb
-      b.global_id = get_next_global_id()
       db.session.add(b)
       logging.info("Added new Blob with id: " + str(b.global_id))
-      
+   
+   if not b.global_id:
+         b.global_id = get_next_global_id()
+
    db.session.commit()      
    master.update_file(method, b.global_id, b.last_sync)
 
