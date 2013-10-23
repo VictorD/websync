@@ -23,7 +23,7 @@ def convert(input):
 def network_sync(method, gid, node):
    logging.info("Locating file with global_id: " + str(gid))
    method = method.upper()
-   f = Blob.query.filter_by(global_id=gid).first()
+   f = Blob.query.filter_by(global_id = gid).first()
    if f:
       url = node + 'blob/'
       logging.info("File found! Sending to " + url)

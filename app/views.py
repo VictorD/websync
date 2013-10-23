@@ -71,7 +71,7 @@ def update_blob(id=None):
 
    b  = None
    if rb.global_id:
-      b = Blob.query.filter_by(global_id == rb.global_id).first()
+      b = Blob.query.filter_by(global_id = rb.global_id).first()
    elif id:
       b = Blob.query.get(id)
 
@@ -135,7 +135,7 @@ def download_blob(id):
 @app.route('/blob/<int:id>/', methods = ['DELETE'])
 def delete_blob(id):
    if request.json and request.json['global_id']:
-      b = Blob.query.filter_by(global_id == int(request.json['global_id'])).first()
+      b = Blob.query.filter_by(global_id = int(request.json['global_id'])).first()
    else:
       b = Blob.query.get(id)
    
