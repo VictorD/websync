@@ -2,7 +2,7 @@ import requests, json, logging, server, master
 from flask import Flask, jsonify, request, abort, make_response, render_template, url_for, redirect
 from models import *
 from app import db, app
-from utils import convert, string_to_timestamp, network_sync, current_time
+from utils import convert, timestamp_to_string, string_to_timestamp, network_sync, current_time
 from subprocess import Popen
 
 # Register Node with MasterNode
@@ -23,19 +23,23 @@ def offlineMode(off):
 
 @app.route('/reconnect/')
 def reconnect():
-   master.register_node()
-   if master.is_online():
-      # tell master of changes that happened while offline
-      update_all_files()         
-   return jsonify ( { 'Online': master.is_online() } ), 200
-
-def update_all_files():
-   bl = Blob.query.all()
-   for b in bl:
-      if b.global_id == None:
-         b.global_id = get_next_global_id()
-      master.update_file('post', b.global_id, b.last_sync)
-   db.session.commit()
+    # Update files that already have global id
+    fileInfoList = []
+    global_blobs = Blob.query.filter(Blob.global_id != None)
+    for blob in global_blobs:
+        fileInfoList.append({   
+            'fileid':blob.global_id,
+            'timestamp': timestamp_to_string(blob.last_sync)
+        })
+    master.register_node(fileInfoList)
+    if master.is_online():
+        # Register new files
+        new_blobs = Blob.query.filter_by(global_id=None)
+        for b in new_blobs:
+            b.global_id = get_next_global_id()
+            db.session.commit()      
+            master.update_file('post', b.global_id, b.last_sync)
+    return jsonify ( { 'fileList': fileInfoList } ), 200
    
 @app.route('/logs/')   
 @app.route('/logs/<int:max>')
@@ -87,22 +91,25 @@ def update_blob(id=None):
       b = Blob.query.get(id)
 
    method = 'post'
-   if b:
-      # update an existing blob
-      method = 'put'
+   if b and rb.last_sync >= b.last_sync:
+      # update existing blob
       b.item      = rb.item
       b.filename  = rb.filename
       b.extension = rb.extension
       b.size      = len(rb.item)
       b.last_sync = rb.last_sync
+      if rb.global_id is not None:
+          b.global_id = rb.global_id
+      method = 'put'
+      logging.info("Updated Blob with id: " + str(b.global_id))
    else:
       # add new blob
       b = rb
       db.session.add(b)
       logging.info("Added new Blob with id: " + str(b.global_id))
-   
+
    if b.global_id == None:
-         b.global_id = get_next_global_id()
+      b.global_id = get_next_global_id()
 
    db.session.commit()      
    master.update_file(method, b.global_id, b.last_sync)
@@ -124,7 +131,7 @@ def blob_from_request(r):
    return rb
         
 def get_next_global_id():
-   gid = 0
+   gid = None
    if master.is_online():   
       try:
          r = requests.get(master.URL + "next/", timeout=30)
@@ -159,6 +166,7 @@ def delete_blob(id):
       db.session.commit()
       return jsonify ( {'Deleted blob':id} ), 200
    return jsonify( {'No blob found with id': id}), 200
+
 # MasterNodes API endpoint
 @app.route('/mn/', methods = ['GET'])
 def master_orders():

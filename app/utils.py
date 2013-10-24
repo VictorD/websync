@@ -3,6 +3,13 @@ from models import Blob
 from flask import request, url_for
 import os, requests, json, logging, datetime
 from subprocess import call
+from threading import Thread
+
+def async(f):
+   def wrapper(*args, **kwargs):
+      thr = Thread(target = f, args= args, kwargs = kwargs)
+      thr.start()
+   return wrapper
 
 JSON_HEADER = {'content-type': 'application/json'}   
    
@@ -20,6 +27,7 @@ def convert(input):
 
 # This methods handles communication between nodes
 # PARAMS: (str , int, str) -> REST method -> Which File -> Destination Node
+@async
 def network_sync(method, gid, node):
    logging.info("Locating file with global_id: " + str(gid))
    method = method.upper()
@@ -30,8 +38,8 @@ def network_sync(method, gid, node):
       
       file = {'file':(f.filename, f.item)}
       values = {'timestamp': str(f.last_sync), 'global_id': gid }
-      
-      if method == 'POST':        
+
+      if method == 'POST':    
          requests.post(url, files=file, data=values)
       elif method == 'PUT':
          requests.put(url + str(gid) + '/', files=file, data=values)
