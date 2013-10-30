@@ -14,29 +14,40 @@ def createServer():
 
     flavors = nv.flavors.list()
     images = nv.images.list()
-    instance = nv.servers.create(name="Meepo", 
-                    image=images[0], flavor=flavors[0], key_name="TreasureKey")
+    if flavors and images:
+        instance = nv.servers.create(name="Meepo", image=images[0], flavor=flavors[0], key_name="TreasureKey")
 
-    status = instance.status
-
-    print "status: %s" % status
-    while status == 'BUILD':
-        time.sleep(2)
-        print "."
-        # Update status fields
-        instance = nv.servers.get(instance.id)
         status = instance.status
-	print "status: %s" % status
 
-	ips = nv.floating_ips.list()
+        print "status: %s" % status
+        while status != 'ACTIVE':
+            time.sleep(2)
+            print "."
+            # Update status fields
+            instance = nv.servers.get(instance.id)
+            status = instance.status
+	    print "status: %s" % status
 
-	new_floating_ip = nv.floating_ips.create()
-	instance.add_floating_ip(new_floating_ip)
+        #while not nv.fixed_ips.list():
+        #    time.sleep(1)
+        #    print "waiting for fixed ip"
+        time.sleep(2)
+        ips = nv.floating_ips.list()
 
-	env.hosts = [new_floating_ip.ip]
-	env.user = 'core'
-	env.key_filename = '/home/vcd/code/websync/TreasureKey.pem'
+        new_floating_ip = nv.floating_ips.create()
+        instance.add_floating_ip(new_floating_ip)
+    
+        env.roledefs = {
+            'coreos' : ['core@' + str(new_floating_ip.ip)]
+        }
+        env.key_filename = '/home/vcd/code/websync/TreasureKey.pem'
+        print env.hosts
+
+@roles('coreos')
+def deploy():
 	run('uname -a')
 
 if __name__ == '__main__':
-	createServer()
+    createServer()
+    deploy()
+
