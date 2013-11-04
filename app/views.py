@@ -33,16 +33,21 @@ def reconnect():
         })
     retJson = master.register_node(fileInfoList)
     if master.is_online():
-        print retJson
         # Deal with conflicts
         if "Conflicts" in retJson:
           for fileid, method in retJson['Conflicts'].items():
-            changed_blob = Blob.query.filter_by(global_id=fileid).first()
-            if changed_blob:
-              if method == 'put':
-                master.update_file(method, changed_blob.global_id, changed_blob.last_sync)
-              elif method == 'post':
-                changed_blob.global_id = None
+            if method == 'delete':
+              master.update_file('delete', fileid)
+            else:
+              changed_blob = Blob.query.filter_by(global_id=fileid).first()
+              if changed_blob:
+                if method == 'post':
+                  new_blob = changed_blob
+                  new_blob.global_id = None
+                  db.session.add(new_blob)
+                  db.session.commit()
+                else:
+                  master.update_file(method, changed_blob.global_id, changed_blob.last_sync)
 
         # Register new files
         new_blobs = Blob.query.filter_by(global_id=None)

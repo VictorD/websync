@@ -27,9 +27,8 @@ def register_node(fileInfoList=[]):
   global OFFLINE_MODE
   logging.info('Registering node at port ' + NODE_PORT + ' with master at ' + URL)
   try:
-      data = {'port': NODE_PORT}
-      if fileInfoList:
-          data['filelist'] = fileInfoList
+      data = {'port': NODE_PORT, 'filelist': fileInfoList}
+
       logging.info(json.dumps(data))
       r = requests.post(URL, data=json.dumps(data), 
                           headers=JSON_HEADER, timeout=10)
@@ -81,9 +80,12 @@ def update_nodes():
          logging.error("Failed to retrieve Node list from Master Node")
 
 # Method used to inform MasterNode about changes in files
-def update_file(method, gid, timestamp):
+def update_file(method, gid, timestamp=None):
    if is_online():
       logging.info("Informing MasterServer of File update: " + str(gid))
-      ts = timestamp_to_string(timestamp)
-      js = {'timestamp': ts, 'fileid': gid, 'port': NODE_PORT}
+      
+      js = {'fileid': gid, 'port': NODE_PORT}
+      if timestamp:
+        js['timestamp'] = timestamp_to_string(timestamp)
+      
       requests.post(URL + method + '/', data=json.dumps(js), headers=JSON_HEADER)
