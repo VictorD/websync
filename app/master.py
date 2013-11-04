@@ -24,29 +24,30 @@ def reconnect_node():
       
    
 def register_node(fileInfoList=[]):
-    global OFFLINE_MODE
-    logging.info('Registering node at port ' + NODE_PORT + ' with master at ' + URL)
-    try:
-        data = {'port': NODE_PORT}
-        if fileInfoList:
-            data['fileList'] = fileInfoList
-        logging.info(json.dumps(data))
-        r = requests.post(URL, data=json.dumps(data), 
-                            headers=JSON_HEADER, timeout=10)
+  global OFFLINE_MODE
+  logging.info('Registering node at port ' + NODE_PORT + ' with master at ' + URL)
+  try:
+      data = {'port': NODE_PORT}
+      if fileInfoList:
+          data['filelist'] = fileInfoList
+      logging.info(json.dumps(data))
+      r = requests.post(URL, data=json.dumps(data), 
+                          headers=JSON_HEADER, timeout=10)
 
-        nid = r.json().get('Node')
-        if not isinstance(nid, int):   
-            raise ValueError
+      nid = r.json().get('Node')
+      if not isinstance(nid, int):   
+          raise ValueError
 
-        global NODE_ID
-        NODE_ID = str(nid)
+      global NODE_ID
+      NODE_ID = str(nid)
 
-        logging.info("Node received ID: " + NODE_ID)
-        OFFLINE_MODE = False
+      logging.info("Node received ID: " + NODE_ID)
+      OFFLINE_MODE = False
 
-    except (ValueError, requests.ConnectionError, requests.Timeout):
-        OFFLINE_MODE = True
-        logging.error('ERROR: Registration failed. Node running in offline mode!')
+  except (ValueError, requests.ConnectionError, requests.Timeout):
+      OFFLINE_MODE = True
+      logging.error('ERROR: Registration failed. Node running in offline mode!')
+  return r.json()
 
 def unregister():
    if is_online():

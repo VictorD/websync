@@ -31,15 +31,26 @@ def reconnect():
             'fileid':blob.global_id,
             'timestamp': timestamp_to_string(blob.last_sync)
         })
-    master.register_node(fileInfoList)
+    retJson = master.register_node(fileInfoList)
     if master.is_online():
+        print retJson
+        # Deal with conflicts
+        if "Conflicts" in retJson:
+          for fileid, method in retJson['Conflicts'].items():
+            changed_blob = Blob.query.filter_by(global_id=fileid).first()
+            if changed_blob:
+              if method == 'put':
+                master.update_file(method, changed_blob.global_id, changed_blob.last_sync)
+              elif method == 'post':
+                changed_blob.global_id = None
+
         # Register new files
         new_blobs = Blob.query.filter_by(global_id=None)
         for b in new_blobs:
             b.global_id = get_next_global_id()
             db.session.commit()      
             master.update_file('post', b.global_id, b.last_sync)
-    return jsonify ( { 'fileList': fileInfoList } ), 200
+    return jsonify ( { 'filelist': fileInfoList } ), 200
    
 @app.route('/logs/')   
 @app.route('/logs/<int:max>')
