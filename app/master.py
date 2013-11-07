@@ -31,7 +31,7 @@ def register_node(fileInfoList=[]):
 
       logging.info(json.dumps(data))
       r = requests.post(URL, data=json.dumps(data), 
-                          headers=JSON_HEADER, timeout=10)
+                          headers=JSON_HEADER, timeout=1)
 
       nid = r.json().get('Node')
       if not isinstance(nid, int):   
@@ -42,11 +42,12 @@ def register_node(fileInfoList=[]):
 
       logging.info("Node received ID: " + NODE_ID)
       OFFLINE_MODE = False
+      return r.json()
 
   except (ValueError, requests.ConnectionError, requests.Timeout):
       OFFLINE_MODE = True
       logging.error('ERROR: Registration failed. Node running in offline mode!')
-  return r.json()
+      return None
 
 def unregister():
    if is_online():

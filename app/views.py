@@ -4,6 +4,8 @@ from models import *
 from app import db, app
 from utils import convert, timestamp_to_string, string_to_timestamp, network_sync, current_time
 from subprocess import Popen
+import nova.views as nova
+from pprint import pprint
 
 # Register Node with MasterNode
 @app.before_first_request
@@ -66,20 +68,21 @@ def logtext(max=50):
    log_lines = log_lines[-max:] # truncate to <max> lines
    return render_template("log.html", lines = reversed(log_lines)) # show newest first
 	
-@app.route('/dashboard/', methods = ['GET'])
+@app.route('/dashboard/')
 def dashboard():
    return render_template("dashboard.html",
       thisURL     = url_for('index', _external=True),
       masterURL   = master.URL,
       node_list   = master.get_nodes(),
-      node_online = master.is_online())
+      node_online = master.is_online(),
+      vm_list     = nova.listInstances())
    
-@app.route('/selfdestruct', methods=['GET'])
+@app.route('/selfdestruct')
 def shutdown():
     server.stop()
     return "<h3>Shutting down server...</h3>"
 		
-@app.route('/blob/', methods = ['GET'])
+@app.route('/blob/')
 def get_all_blobs():
    bl = Blob.query.all()
    path = url_for('get_all_blobs', _external=True)
@@ -158,7 +161,7 @@ def get_next_global_id():
          logging.error('Global ID request timeout. Using default value')
    return gid
 
-@app.route('/blob/<int:id>/', methods = ['GET'])
+@app.route('/blob/<int:id>/')
 def download_blob(id):
    b = Blob.query.get(id)
    response = make_response(b.item)
@@ -184,7 +187,7 @@ def delete_blob(id):
    return jsonify( {'No blob found with id': id}), 200
 
 # MasterNodes API endpoint
-@app.route('/mn/', methods = ['GET'])
+@app.route('/mn/')
 def master_orders():
    logging.info("Received MN request")
    if request.json and 'nodeurl' in request.json and 'method' in request.json and 'fileid' in request.json:

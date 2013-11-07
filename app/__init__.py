@@ -7,3 +7,6 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 from app import models,views
+
+from nova.views import nmod as NovaModule
+app.register_blueprint(NovaModule)
