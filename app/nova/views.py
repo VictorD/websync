@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from flask import Flask, Blueprint, request, url_for, redirect
+from fabric.api import *
+from fabric.tasks import execute
 from app import db, app, utils
 from novaclient.v1_1 import client
 import novaclient.exceptions
@@ -24,20 +26,35 @@ def add_instance():
 
    return redirect(dash_url)
 
-@nmod.route('/removeInstance/<server_id>')
-def remove_instance(server_id):
+@nmod.route('/removeInstance/<instance_id>')
+def remove_instance(instance_id):
    try:
-      instance = client.servers.get(server_id)
+      instance = client.servers.get(instance_id)
       instance.delete()
    except novaclient.exceptions.NotFound:
       pass
 
+   ips = client.floating_ips.list()
+   oldFLIPs = [x.id for x in ips if x.instance_id == instance_id]
+   for flip in oldFLIPs:
+      client.floating_ips.delete(flip)
+
    return redirect(dash_url)
 
-@nmod.route('/addNode/<id>', methods = ['POST'])
+env.user = 'core'
+
+@nmod.route('/addNode/', methods = ['POST'])
 def add_instance_node():
+   ip   = request.form.get('ip', None)
+   port = request.form.get('port', None)
+   if ip:
+      env.key_filename = os.path.join(app.config['BASE_DIR'], 'TreasureKey.pem')
+      execute(startDocker(port), hosts=[ip])
+      
    return port
 
+def startDocker(port):
+   run("sudo docker run -d -p " + port + ":" + port + " wsDocker:latest /bin/bash")
    
 #nova --os-username "student-project-9" --os-tenant-id="b0f27ff1c56b4e18a893157d1cfee705" 
 #     --os-auth-url="http://130.240.233.106:5000/v2.0" --os-password="jTKmDEO5Xl5H" image-list
@@ -48,13 +65,20 @@ client = client.Client(username   = "student-project-9",
 
 def listInstances():
    vm_list = client.servers.list()
-   for v in vm_list:
-      addr = v.addresses
-      if 'private' in v.addresses:
-         for ip in v.addresses['private']:
-            if ip['OS-EXT-IPS:type'] == 'floating':
-               v.ip = ip['addr']
+   for s in vm_list:
+      newIp = getFloatingIP(s)
+      if newIp:
+         s.ip = newIp
    return vm_list
+
+def getFloatingIP(instance):
+   pprint (vars(instance))
+   if 'private' in instance.addresses:
+      for ip in instance.addresses['private']:
+
+         if ip['OS-EXT-IPS:type'] == 'floating':
+            return ip['addr']
+   return None
 
 @utils.async
 def spawnInstance(instanceName):

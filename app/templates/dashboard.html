@@ -27,8 +27,9 @@
                   </a>
                </td>
                <td>
-                  <form action="/nova/addNode/{{ server.id }}" method="POST" class="form-inline">
+                  <form action="/nova/addNode/" method="POST" class="form-inline">
                      <div class="form-group">
+			<input type="hidden" name="ip" value="{{ server.ip }}"/>
                         <input class="form-control" name="port" size="5" maxsize="5" type="text" placeholder="Port"/>
                      </div>
                      <button type="submit" class="btn btn-success">Spawn Node</button>
