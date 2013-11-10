@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 from flask import Flask, Blueprint, request, url_for, redirect
-from fabric.api import *
-from fabric.tasks import execute
 from app import db, app, utils
-from novaclient.v1_1 import client
-import novaclient.exceptions
 import os, time
 from pprint import pprint 
+
+from fabric.tasks import execute
+from fabric.api import *
+from novaclient.v1_1 import client
+import novaclient.exceptions
+
 
 nmod = Blueprint('nova', __name__, url_prefix='/nova')
 
@@ -14,6 +16,9 @@ dash_url = ""
 
 @app.before_first_request
 def nmod_init():
+   env.warn_only = True
+   env.user = 'core'
+   env.key_filename = os.path.join(app.config['BASE_DIR'], 'TreasureKey.pem')
    url_for('index') + "#!/dashboard"
 
 @nmod.route('/addInstance', methods = ['POST'])
@@ -41,20 +46,19 @@ def remove_instance(instance_id):
 
    return redirect(dash_url)
 
-env.user = 'core'
-
 @nmod.route('/addNode/', methods = ['POST'])
 def add_instance_node():
    ip   = request.form.get('ip', None)
    port = request.form.get('port', None)
    if ip:
-      env.key_filename = os.path.join(app.config['BASE_DIR'], 'TreasureKey.pem')
-      execute(startDocker(port), hosts=[ip])
+      #env.hosts_str = ip + ":22"
+      execute(startDocker, port, hosts=[ip])
       
    return port
 
 def startDocker(port):
-   run("sudo docker run -d -p " + port + ":" + port + " wsDocker:latest /bin/bash")
+   cmd = "sudo docker run -d -p " + port + ":" + port + " websync " + port
+   run(cmd)
    
 #nova --os-username "student-project-9" --os-tenant-id="b0f27ff1c56b4e18a893157d1cfee705" 
 #     --os-auth-url="http://130.240.233.106:5000/v2.0" --os-password="jTKmDEO5Xl5H" image-list
