@@ -1,3 +1,5 @@
 FROM lightweight/websync
 
-CMD ./startDocker.sh
+ADD . /docker-registry
+
+CMD cd /docker-registry startDocker.sh
