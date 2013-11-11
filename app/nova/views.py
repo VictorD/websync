@@ -2,7 +2,6 @@
 from flask import Flask, Blueprint, request, url_for, redirect
 from app import db, app, utils
 import os, time
-from pprint import pprint 
 
 from fabric.tasks import execute
 from fabric.api import *
@@ -23,14 +22,19 @@ def nmod_init():
 
 @nmod.route('/addInstance', methods = ['POST'])
 def add_instance():
-   server_id = 0
-
-   if request.form and 'instanceName' in request.form:
-      name = request.form['instanceName']
+   name = request.form.get('instanceName', None)
+   if name:
       newInstance = spawnInstance(name)
-
    return redirect(dash_url)
 
+@nmod.route('/addNode/', methods = ['POST'])
+def add_instance_node():
+   ip   = request.form.get('ip', None)
+   port = request.form.get('port', None)
+   if ip:
+      execute(remoteWebsyncStart, port, hosts=[ip])
+   return redirect(dash_url)
+   
 @nmod.route('/removeInstance/<instance_id>')
 def remove_instance(instance_id):
    try:
@@ -46,18 +50,12 @@ def remove_instance(instance_id):
 
    return redirect(dash_url)
 
-@nmod.route('/addNode/', methods = ['POST'])
-def add_instance_node():
-   ip   = request.form.get('ip', None)
-   port = request.form.get('port', None)
-   if ip:
-      #env.hosts_str = ip + ":22"
-      execute(startDocker, port, hosts=[ip])
-      
-   return port
-
-def startDocker(port):
-   cmd = "sudo docker run -d -p " + port + ":" + port + " websync " + port
+def remoteWebsyncUpdate():
+   cmd = "docker build -t=\"websync\" github.com/VictorD/websync"
+   run(cmd)
+   
+def remoteWebsyncStart(port):
+   cmd = "docker run -d -p " + port + ":" + port + " websync " + port
    run(cmd)
    
 #nova --os-username "student-project-9" --os-tenant-id="b0f27ff1c56b4e18a893157d1cfee705" 
@@ -76,7 +74,6 @@ def listInstances():
    return vm_list
 
 def getFloatingIP(instance):
-   pprint (vars(instance))
    if 'private' in instance.addresses:
       for ip in instance.addresses['private']:
 
@@ -104,7 +101,10 @@ def spawnInstance(instanceName):
 
     # Wait a little to ensure we got a fixed ip (To prevent error: nw_cache missing)
     time.sleep(2)
-    assignFloatingIP(instance)
+    ip = assignFloatingIP(instance)
+    time.sleep(2)
+    if ip:
+      execute(remoteWebsyncUpdate, hosts=[ip])
   return instance
    
 #def destroyInstance():
