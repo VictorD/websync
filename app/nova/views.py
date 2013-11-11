@@ -55,7 +55,7 @@ def remoteWebsyncUpdate():
    run(cmd)
    
 def remoteWebsyncStart(port):
-   cmd = "docker run -d -p " + port + ":" + port + " websync " + port
+   cmd = "docker run -d -p " + port + ":" + port + " websync:latest " + port
    run(cmd)
    
 #nova --os-username "student-project-9" --os-tenant-id="b0f27ff1c56b4e18a893157d1cfee705" 
@@ -102,8 +102,8 @@ def spawnInstance(instanceName):
     # Wait a little to ensure we got a fixed ip (To prevent error: nw_cache missing)
     time.sleep(2)
     ip = assignFloatingIP(instance)
-    time.sleep(2)
     if ip:
+      time.sleep(5)
       execute(remoteWebsyncUpdate, hosts=[ip])
   return instance
    
