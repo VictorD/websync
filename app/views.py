@@ -141,7 +141,6 @@ def blob_from_request(r):
    ts = current_time()
    rb = Blob(item=fr, filename=f.filename, extension=f.content_type, 
              size=len(fr), created_at = ts, last_sync = ts)
-   logging.info(r.form)
    if r.form:
       if 'timestamp' in r.form:
          rb.last_sync = string_to_timestamp(r.form['timestamp'])

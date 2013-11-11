@@ -25,7 +25,10 @@ class Blob(db.Model):
       return '<Blob %r>' % (self.id)
 
    def icon_img(self):
-      i = self.extension.split("/")[-1]
+      i = "/static/img/_blank.png"
+
+      if self.extension:
+         i = self.extension.split("/")[-1]
 
       # Documents
    
@@ -59,11 +62,6 @@ class Blob(db.Model):
 
       elif i == "html":
          i = "/static/img/html.png"
-
-      # Others
-
-      else:
-         i = "/static/img/_blank.png"
 
       return i
 
