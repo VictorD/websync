@@ -32,7 +32,7 @@ def register_node(fileInfoList=[]):
 
       logging.info(json.dumps(data))
       r = requests.post(URL, data=json.dumps(data), 
-                          headers=JSON_HEADER, timeout=1)
+                          headers=JSON_HEADER, timeout=5)
 
       nid = r.json().get('Node')
       logging.error("NODE ID: " + nid)
