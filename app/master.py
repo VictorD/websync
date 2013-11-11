@@ -1,5 +1,6 @@
 from utils import JSON_HEADER, timestamp_to_string, convert
 import requests, json, logging
+from pprint import pprint
 
 OFFLINE_MODE = True
 URL = ""
@@ -44,8 +45,9 @@ def register_node(fileInfoList=[]):
       OFFLINE_MODE = False
       return r.json()
 
-  except (ValueError, requests.ConnectionError, requests.Timeout):
+  except (ValueError, requests.ConnectionError, requests.Timeout) as e:
       OFFLINE_MODE = True
+      print "ERROR: ({0}): {1}".format(e.errno, e.strerror)
       logging.error('ERROR: Registration failed. Node running in offline mode!')
       return None
 

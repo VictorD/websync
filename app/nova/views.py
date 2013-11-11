@@ -103,7 +103,7 @@ def spawnInstance(instanceName):
     time.sleep(2)
     ip = assignFloatingIP(instance)
     if ip:
-      time.sleep(5)
+      time.sleep(20) # Give server time to boot
       execute(remoteWebsyncUpdate, hosts=[ip])
   return instance
    
