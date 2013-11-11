@@ -25,7 +25,7 @@ if __name__ == '__main__':
       app.config['BASE_DIR']   = os.path.abspath(os.path.dirname(__file__))
       
       # API access point for MasterNode
-      master.register("http://130.240.95.209:5000/", portstr)
+      master.register("http://130.240.5.168:5002/", portstr)
 
       # Create database
       db.create_all()
