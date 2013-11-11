@@ -47,7 +47,7 @@ def register_node(fileInfoList=[]):
 
   except (ValueError, requests.ConnectionError, requests.Timeout) as e:
       OFFLINE_MODE = True
-      print "ERROR: ({0}): {1}".format(e.errno, e.strerror)
+      logging.error("ERROR: ({0}): {1}".format(e.errno, e.strerror))
       logging.error('ERROR: Registration failed. Node running in offline mode!')
       return None
 
