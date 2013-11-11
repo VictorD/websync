@@ -35,6 +35,7 @@ def register_node(fileInfoList=[]):
                           headers=JSON_HEADER, timeout=1)
 
       nid = r.json().get('Node')
+      logging.info("NODE ID: " + nid)
       if not isinstance(nid, int):   
           raise ValueError
 
